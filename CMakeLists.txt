@@ -97,7 +97,6 @@
         boost/asio/ssl/verify_mode.hpp
         boost/asio/ssl/basic_context.hpp
         boost/asio/ssl/rfc2818_verification.hpp
-        boost/asio/.DS_Store
         boost/asio/serial_port.hpp
         boost/asio/basic_deadline_timer.hpp
         boost/asio/serial_port_base.hpp
@@ -375,9 +374,7 @@
         boost/asio/generic/datagram_protocol.hpp
         boost/asio/generic/seq_packet_protocol.hpp
         boost/asio/generic/stream_protocol.hpp
-        boost/asio/generic/.DS_Store
         boost/asio/generic/detail/impl/endpoint.ipp
-        boost/asio/generic/detail/.DS_Store
         boost/asio/generic/detail/endpoint.hpp
         boost/asio/generic/basic_endpoint.hpp
         boost/asio/generic/raw_protocol.hpp
