@@ -32,7 +32,7 @@ endif()
 
 CPM_InitModule(${CPM_MODULE_NAME})
 
-CPM_ExportAdditionalIncludeDir(${CPM_MODULE_NAME} boost)
+CPM_ExportAdditionalIncludeDir(boost)
 
 #-----------------------------------------------------------------------
 # Sources configuration
