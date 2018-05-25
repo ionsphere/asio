@@ -44,7 +44,7 @@ set(SOURCE_FILES
       boost/asio/impl/defer.hpp
       boost/asio/impl/dispatch.hpp
       boost/asio/impl/error.ipp
-      boost/asio/impl/error_code.hpp
+      boost/asio/impl/error_code.ipp
       boost/asio/impl/execution_context.hpp
       boost/asio/impl/execution_context.ipp
       boost/asio/impl/executor.hpp
