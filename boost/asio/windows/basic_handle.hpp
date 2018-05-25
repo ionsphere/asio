@@ -2,33 +2,34 @@
 // windows/basic_handle.hpp
 // ~~~~~~~~~~~~~~~~~~~~~~~~
 //
-// Copyright (c) 2003-2016 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+// Copyright (c) 2003-2018 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
-#ifndef BOOST_ASIO_WINDOWS_BASIC_HANDLE_HPP
-#define BOOST_ASIO_WINDOWS_BASIC_HANDLE_HPP
+#ifndef ASIO_WINDOWS_BASIC_HANDLE_HPP
+#define ASIO_WINDOWS_BASIC_HANDLE_HPP
 
 #if defined(_MSC_VER) && (_MSC_VER >= 1200)
 # pragma once
 #endif // defined(_MSC_VER) && (_MSC_VER >= 1200)
 
-#include <boost/asio/detail/config.hpp>
+#include "asio/detail/config.hpp"
 
-#if defined(BOOST_ASIO_HAS_WINDOWS_RANDOM_ACCESS_HANDLE) \
-  || defined(BOOST_ASIO_HAS_WINDOWS_STREAM_HANDLE) \
-  || defined(BOOST_ASIO_HAS_WINDOWS_OBJECT_HANDLE) \
+#if defined(ASIO_ENABLE_OLD_SERVICES)
+
+#if defined(ASIO_HAS_WINDOWS_RANDOM_ACCESS_HANDLE) \
+  || defined(ASIO_HAS_WINDOWS_STREAM_HANDLE) \
+  || defined(ASIO_HAS_WINDOWS_OBJECT_HANDLE) \
   || defined(GENERATING_DOCUMENTATION)
 
-#include <boost/asio/basic_io_object.hpp>
-#include <boost/asio/detail/throw_error.hpp>
-#include <boost/asio/error.hpp>
+#include "asio/basic_io_object.hpp"
+#include "asio/detail/throw_error.hpp"
+#include "asio/error.hpp"
 
-#include <boost/asio/detail/push_options.hpp>
+#include "asio/detail/push_options.hpp"
 
-namespace boost {
 namespace asio {
 namespace windows {
 
@@ -46,10 +47,6 @@ class basic_handle
   : public basic_io_object<HandleService>
 {
 public:
-  /// (Deprecated: Use native_handle_type.) The native representation of a
-  /// handle.
-  typedef typename HandleService::native_handle_type native_type;
-
   /// The native representation of a handle.
   typedef typename HandleService::native_handle_type native_handle_type;
 
@@ -60,11 +57,11 @@ public:
   /**
    * This constructor creates a handle without opening it.
    *
-   * @param io_service The io_service object that the handle will use to
+   * @param io_context The io_context object that the handle will use to
    * dispatch handlers for any asynchronous operations performed on the handle.
    */
-  explicit basic_handle(boost::asio::io_service& io_service)
-    : basic_io_object<HandleService>(io_service)
+  explicit basic_handle(asio::io_context& io_context)
+    : basic_io_object<HandleService>(io_context)
   {
   }
 
@@ -72,23 +69,23 @@ public:
   /**
    * This constructor creates a handle object to hold an existing native handle.
    *
-   * @param io_service The io_service object that the handle will use to
+   * @param io_context The io_context object that the handle will use to
    * dispatch handlers for any asynchronous operations performed on the handle.
    *
    * @param handle A native handle.
    *
-   * @throws boost::system::system_error Thrown on failure.
+   * @throws asio::system_error Thrown on failure.
    */
-  basic_handle(boost::asio::io_service& io_service,
+  basic_handle(asio::io_context& io_context,
       const native_handle_type& handle)
-    : basic_io_object<HandleService>(io_service)
+    : basic_io_object<HandleService>(io_context)
   {
-    boost::system::error_code ec;
+    asio::error_code ec;
     this->get_service().assign(this->get_implementation(), handle, ec);
-    boost::asio::detail::throw_error(ec, "assign");
+    asio::detail::throw_error(ec, "assign");
   }
 
-#if defined(BOOST_ASIO_HAS_MOVE) || defined(GENERATING_DOCUMENTATION)
+#if defined(ASIO_HAS_MOVE) || defined(GENERATING_DOCUMENTATION)
   /// Move-construct a basic_handle from another.
   /**
    * This constructor moves a handle from one object to another.
@@ -96,11 +93,11 @@ public:
    * @param other The other basic_handle object from which the move will occur.
    *
    * @note Following the move, the moved-from object is in the same state as if
-   * constructed using the @c basic_handle(io_service&) constructor.
+   * constructed using the @c basic_handle(io_context&) constructor.
    */
   basic_handle(basic_handle&& other)
     : basic_io_object<HandleService>(
-        BOOST_ASIO_MOVE_CAST(basic_handle)(other))
+        ASIO_MOVE_CAST(basic_handle)(other))
   {
   }
 
@@ -111,15 +108,15 @@ public:
    * @param other The other basic_handle object from which the move will occur.
    *
    * @note Following the move, the moved-from object is in the same state as if
-   * constructed using the @c basic_handle(io_service&) constructor.
+   * constructed using the @c basic_handle(io_context&) constructor.
    */
   basic_handle& operator=(basic_handle&& other)
   {
     basic_io_object<HandleService>::operator=(
-        BOOST_ASIO_MOVE_CAST(basic_handle)(other));
+        ASIO_MOVE_CAST(basic_handle)(other));
     return *this;
   }
-#endif // defined(BOOST_ASIO_HAS_MOVE) || defined(GENERATING_DOCUMENTATION)
+#endif // defined(ASIO_HAS_MOVE) || defined(GENERATING_DOCUMENTATION)
 
   /// Get a reference to the lowest layer.
   /**
@@ -155,13 +152,13 @@ public:
    *
    * @param handle A native handle.
    *
-   * @throws boost::system::system_error Thrown on failure.
+   * @throws asio::system_error Thrown on failure.
    */
   void assign(const native_handle_type& handle)
   {
-    boost::system::error_code ec;
+    asio::error_code ec;
     this->get_service().assign(this->get_implementation(), handle, ec);
-    boost::asio::detail::throw_error(ec, "assign");
+    asio::detail::throw_error(ec, "assign");
   }
 
   /// Assign an existing native handle to the handle.
@@ -172,10 +169,11 @@ public:
    *
    * @param ec Set to indicate what error occurred, if any.
    */
-  boost::system::error_code assign(const native_handle_type& handle,
-      boost::system::error_code& ec)
+  ASIO_SYNC_OP_VOID assign(const native_handle_type& handle,
+      asio::error_code& ec)
   {
-    return this->get_service().assign(this->get_implementation(), handle, ec);
+    this->get_service().assign(this->get_implementation(), handle, ec);
+    ASIO_SYNC_OP_VOID_RETURN(ec);
   }
 
   /// Determine whether the handle is open.
@@ -188,39 +186,29 @@ public:
   /**
    * This function is used to close the handle. Any asynchronous read or write
    * operations will be cancelled immediately, and will complete with the
-   * boost::asio::error::operation_aborted error.
+   * asio::error::operation_aborted error.
    *
-   * @throws boost::system::system_error Thrown on failure.
+   * @throws asio::system_error Thrown on failure.
    */
   void close()
   {
-    boost::system::error_code ec;
+    asio::error_code ec;
     this->get_service().close(this->get_implementation(), ec);
-    boost::asio::detail::throw_error(ec, "close");
+    asio::detail::throw_error(ec, "close");
   }
 
   /// Close the handle.
   /**
    * This function is used to close the handle. Any asynchronous read or write
    * operations will be cancelled immediately, and will complete with the
-   * boost::asio::error::operation_aborted error.
+   * asio::error::operation_aborted error.
    *
    * @param ec Set to indicate what error occurred, if any.
    */
-  boost::system::error_code close(boost::system::error_code& ec)
+  ASIO_SYNC_OP_VOID close(asio::error_code& ec)
   {
-    return this->get_service().close(this->get_implementation(), ec);
-  }
-
-  /// (Deprecated: Use native_handle().) Get the native handle representation.
-  /**
-   * This function may be used to obtain the underlying representation of the
-   * handle. This is intended to allow access to native handle functionality
-   * that is not otherwise provided.
-   */
-  native_type native()
-  {
-    return this->get_service().native_handle(this->get_implementation());
+    this->get_service().close(this->get_implementation(), ec);
+    ASIO_SYNC_OP_VOID_RETURN(ec);
   }
 
   /// Get the native handle representation.
@@ -238,28 +226,29 @@ public:
   /**
    * This function causes all outstanding asynchronous read or write operations
    * to finish immediately, and the handlers for cancelled operations will be
-   * passed the boost::asio::error::operation_aborted error.
+   * passed the asio::error::operation_aborted error.
    *
-   * @throws boost::system::system_error Thrown on failure.
+   * @throws asio::system_error Thrown on failure.
    */
   void cancel()
   {
-    boost::system::error_code ec;
+    asio::error_code ec;
     this->get_service().cancel(this->get_implementation(), ec);
-    boost::asio::detail::throw_error(ec, "cancel");
+    asio::detail::throw_error(ec, "cancel");
   }
 
   /// Cancel all asynchronous operations associated with the handle.
   /**
    * This function causes all outstanding asynchronous read or write operations
    * to finish immediately, and the handlers for cancelled operations will be
-   * passed the boost::asio::error::operation_aborted error.
+   * passed the asio::error::operation_aborted error.
    *
    * @param ec Set to indicate what error occurred, if any.
    */
-  boost::system::error_code cancel(boost::system::error_code& ec)
+  ASIO_SYNC_OP_VOID cancel(asio::error_code& ec)
   {
-    return this->get_service().cancel(this->get_implementation(), ec);
+    this->get_service().cancel(this->get_implementation(), ec);
+    ASIO_SYNC_OP_VOID_RETURN(ec);
   }
 
 protected:
@@ -271,13 +260,14 @@ protected:
 
 } // namespace windows
 } // namespace asio
-} // namespace boost
 
-#include <boost/asio/detail/pop_options.hpp>
+#include "asio/detail/pop_options.hpp"
 
-#endif // defined(BOOST_ASIO_HAS_WINDOWS_RANDOM_ACCESS_HANDLE)
-       //   || defined(BOOST_ASIO_HAS_WINDOWS_STREAM_HANDLE)
-       //   || defined(BOOST_ASIO_HAS_WINDOWS_OBJECT_HANDLE)
+#endif // defined(ASIO_HAS_WINDOWS_RANDOM_ACCESS_HANDLE)
+       //   || defined(ASIO_HAS_WINDOWS_STREAM_HANDLE)
+       //   || defined(ASIO_HAS_WINDOWS_OBJECT_HANDLE)
        //   || defined(GENERATING_DOCUMENTATION)
 
-#endif // BOOST_ASIO_WINDOWS_BASIC_HANDLE_HPP
+#endif // defined(ASIO_ENABLE_OLD_SERVICES)
+
+#endif // ASIO_WINDOWS_BASIC_HANDLE_HPP

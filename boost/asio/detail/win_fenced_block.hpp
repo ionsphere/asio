@@ -2,28 +2,28 @@
 // detail/win_fenced_block.hpp
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //
-// Copyright (c) 2003-2016 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+// Copyright (c) 2003-2018 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
-#ifndef BOOST_ASIO_DETAIL_WIN_FENCED_BLOCK_HPP
-#define BOOST_ASIO_DETAIL_WIN_FENCED_BLOCK_HPP
+#ifndef ASIO_DETAIL_WIN_FENCED_BLOCK_HPP
+#define ASIO_DETAIL_WIN_FENCED_BLOCK_HPP
 
 #if defined(_MSC_VER) && (_MSC_VER >= 1200)
 # pragma once
 #endif // defined(_MSC_VER) && (_MSC_VER >= 1200)
 
-#include <boost/asio/detail/config.hpp>
+#include "asio/detail/config.hpp"
 
-#if defined(BOOST_ASIO_WINDOWS) && !defined(UNDER_CE)
+#if defined(ASIO_WINDOWS) && !defined(UNDER_CE)
 
-#include <boost/asio/detail/socket_types.hpp>
+#include "asio/detail/socket_types.hpp"
+#include "asio/detail/noncopyable.hpp"
 
-#include <boost/asio/detail/push_options.hpp>
+#include "asio/detail/push_options.hpp"
 
-namespace boost {
 namespace asio {
 namespace detail {
 
@@ -45,8 +45,8 @@ public:
 #if defined(__BORLANDC__)
     LONG barrier = 0;
     ::InterlockedExchange(&barrier, 1);
-#elif defined(BOOST_ASIO_MSVC) \
-  && ((BOOST_ASIO_MSVC < 1400) || !defined(MemoryBarrier))
+#elif defined(ASIO_MSVC) \
+  && ((ASIO_MSVC < 1400) || !defined(MemoryBarrier))
 # if defined(_M_IX86)
 #  pragma warning(push)
 #  pragma warning(disable:4793)
@@ -65,8 +65,8 @@ public:
 #if defined(__BORLANDC__)
     LONG barrier = 0;
     ::InterlockedExchange(&barrier, 1);
-#elif defined(BOOST_ASIO_MSVC) \
-  && ((BOOST_ASIO_MSVC < 1400) || !defined(MemoryBarrier))
+#elif defined(ASIO_MSVC) \
+  && ((ASIO_MSVC < 1400) || !defined(MemoryBarrier))
 # if defined(_M_IX86)
 #  pragma warning(push)
 #  pragma warning(disable:4793)
@@ -82,10 +82,9 @@ public:
 
 } // namespace detail
 } // namespace asio
-} // namespace boost
 
-#include <boost/asio/detail/pop_options.hpp>
+#include "asio/detail/pop_options.hpp"
 
-#endif // defined(BOOST_ASIO_WINDOWS) && !defined(UNDER_CE)
+#endif // defined(ASIO_WINDOWS) && !defined(UNDER_CE)
 
-#endif // BOOST_ASIO_DETAIL_WIN_FENCED_BLOCK_HPP
+#endif // ASIO_DETAIL_WIN_FENCED_BLOCK_HPP

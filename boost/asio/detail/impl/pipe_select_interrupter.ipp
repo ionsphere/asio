@@ -2,39 +2,38 @@
 // detail/impl/pipe_select_interrupter.ipp
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //
-// Copyright (c) 2003-2016 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+// Copyright (c) 2003-2018 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
-#ifndef BOOST_ASIO_DETAIL_IMPL_PIPE_SELECT_INTERRUPTER_IPP
-#define BOOST_ASIO_DETAIL_IMPL_PIPE_SELECT_INTERRUPTER_IPP
+#ifndef ASIO_DETAIL_IMPL_PIPE_SELECT_INTERRUPTER_IPP
+#define ASIO_DETAIL_IMPL_PIPE_SELECT_INTERRUPTER_IPP
 
 #if defined(_MSC_VER) && (_MSC_VER >= 1200)
 # pragma once
 #endif // defined(_MSC_VER) && (_MSC_VER >= 1200)
 
-#include <boost/asio/detail/config.hpp>
+#include "asio/detail/config.hpp"
 
-#if !defined(BOOST_ASIO_WINDOWS_RUNTIME)
-#if !defined(BOOST_ASIO_WINDOWS)
+#if !defined(ASIO_WINDOWS_RUNTIME)
+#if !defined(ASIO_WINDOWS)
 #if !defined(__CYGWIN__)
 #if !defined(__SYMBIAN32__)
-#if !defined(BOOST_ASIO_HAS_EVENTFD)
+#if !defined(ASIO_HAS_EVENTFD)
 
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
-#include <boost/asio/detail/pipe_select_interrupter.hpp>
-#include <boost/asio/detail/socket_types.hpp>
-#include <boost/asio/detail/throw_error.hpp>
-#include <boost/asio/error.hpp>
+#include "asio/detail/pipe_select_interrupter.hpp"
+#include "asio/detail/socket_types.hpp"
+#include "asio/detail/throw_error.hpp"
+#include "asio/error.hpp"
 
-#include <boost/asio/detail/push_options.hpp>
+#include "asio/detail/push_options.hpp"
 
-namespace boost {
 namespace asio {
 namespace detail {
 
@@ -60,9 +59,9 @@ void pipe_select_interrupter::open_descriptors()
   }
   else
   {
-    boost::system::error_code ec(errno,
-        boost::asio::error::get_system_category());
-    boost::asio::detail::throw_error(ec, "pipe_select_interrupter");
+    asio::error_code ec(errno,
+        asio::error::get_system_category());
+    asio::detail::throw_error(ec, "pipe_select_interrupter");
   }
 }
 
@@ -113,14 +112,13 @@ bool pipe_select_interrupter::reset()
 
 } // namespace detail
 } // namespace asio
-} // namespace boost
 
-#include <boost/asio/detail/pop_options.hpp>
+#include "asio/detail/pop_options.hpp"
 
-#endif // !defined(BOOST_ASIO_HAS_EVENTFD)
+#endif // !defined(ASIO_HAS_EVENTFD)
 #endif // !defined(__SYMBIAN32__)
 #endif // !defined(__CYGWIN__)
-#endif // !defined(BOOST_ASIO_WINDOWS)
-#endif // !defined(BOOST_ASIO_WINDOWS_RUNTIME)
+#endif // !defined(ASIO_WINDOWS)
+#endif // !defined(ASIO_WINDOWS_RUNTIME)
 
-#endif // BOOST_ASIO_DETAIL_IMPL_PIPE_SELECT_INTERRUPTER_IPP
+#endif // ASIO_DETAIL_IMPL_PIPE_SELECT_INTERRUPTER_IPP

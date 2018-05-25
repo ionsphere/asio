@@ -2,40 +2,40 @@
 // detail/win_thread.hpp
 // ~~~~~~~~~~~~~~~~~~~~~
 //
-// Copyright (c) 2003-2016 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+// Copyright (c) 2003-2018 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
-#ifndef BOOST_ASIO_DETAIL_WIN_THREAD_HPP
-#define BOOST_ASIO_DETAIL_WIN_THREAD_HPP
+#ifndef ASIO_DETAIL_WIN_THREAD_HPP
+#define ASIO_DETAIL_WIN_THREAD_HPP
 
 #if defined(_MSC_VER) && (_MSC_VER >= 1200)
 # pragma once
 #endif // defined(_MSC_VER) && (_MSC_VER >= 1200)
 
-#include <boost/asio/detail/config.hpp>
+#include "asio/detail/config.hpp"
 
-#if defined(BOOST_ASIO_WINDOWS) \
-  && !defined(BOOST_ASIO_WINDOWS_APP) \
+#if defined(ASIO_WINDOWS) \
+  && !defined(ASIO_WINDOWS_APP) \
   && !defined(UNDER_CE)
 
-#include <boost/asio/detail/noncopyable.hpp>
-#include <boost/asio/detail/socket_types.hpp>
+#include <cstddef>
+#include "asio/detail/noncopyable.hpp"
+#include "asio/detail/socket_types.hpp"
 
-#include <boost/asio/detail/push_options.hpp>
+#include "asio/detail/push_options.hpp"
 
-namespace boost {
 namespace asio {
 namespace detail {
 
-BOOST_ASIO_DECL unsigned int __stdcall win_thread_function(void* arg);
+ASIO_DECL unsigned int __stdcall win_thread_function(void* arg);
 
 #if defined(WINVER) && (WINVER < 0x0500)
-BOOST_ASIO_DECL void __stdcall apc_function(ULONG data);
+ASIO_DECL void __stdcall apc_function(ULONG data);
 #else
-BOOST_ASIO_DECL void __stdcall apc_function(ULONG_PTR data);
+ASIO_DECL void __stdcall apc_function(ULONG_PTR data);
 #endif
 
 template <typename T>
@@ -74,18 +74,21 @@ public:
   }
 
   // Destructor.
-  BOOST_ASIO_DECL ~win_thread();
+  ASIO_DECL ~win_thread();
 
   // Wait for the thread to exit.
-  BOOST_ASIO_DECL void join();
+  ASIO_DECL void join();
+
+  // Get number of CPUs.
+  ASIO_DECL static std::size_t hardware_concurrency();
 
 private:
-  friend BOOST_ASIO_DECL unsigned int __stdcall win_thread_function(void* arg);
+  friend ASIO_DECL unsigned int __stdcall win_thread_function(void* arg);
 
 #if defined(WINVER) && (WINVER < 0x0500)
-  friend BOOST_ASIO_DECL void __stdcall apc_function(ULONG);
+  friend ASIO_DECL void __stdcall apc_function(ULONG);
 #else
-  friend BOOST_ASIO_DECL void __stdcall apc_function(ULONG_PTR);
+  friend ASIO_DECL void __stdcall apc_function(ULONG_PTR);
 #endif
 
   class func_base
@@ -122,7 +125,7 @@ private:
     Function f_;
   };
 
-  BOOST_ASIO_DECL void start_thread(func_base* arg, unsigned int stack_size);
+  ASIO_DECL void start_thread(func_base* arg, unsigned int stack_size);
 
   ::HANDLE thread_;
   ::HANDLE exit_event_;
@@ -130,16 +133,15 @@ private:
 
 } // namespace detail
 } // namespace asio
-} // namespace boost
 
-#include <boost/asio/detail/pop_options.hpp>
+#include "asio/detail/pop_options.hpp"
 
-#if defined(BOOST_ASIO_HEADER_ONLY)
-# include <boost/asio/detail/impl/win_thread.ipp>
-#endif // defined(BOOST_ASIO_HEADER_ONLY)
+#if defined(ASIO_HEADER_ONLY)
+# include "asio/detail/impl/win_thread.ipp"
+#endif // defined(ASIO_HEADER_ONLY)
 
-#endif // defined(BOOST_ASIO_WINDOWS)
-       // && !defined(BOOST_ASIO_WINDOWS_APP)
+#endif // defined(ASIO_WINDOWS)
+       // && !defined(ASIO_WINDOWS_APP)
        // && !defined(UNDER_CE)
 
-#endif // BOOST_ASIO_DETAIL_WIN_THREAD_HPP
+#endif // ASIO_DETAIL_WIN_THREAD_HPP

@@ -2,42 +2,42 @@
 // detail/impl/reactive_descriptor_service.ipp
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //
-// Copyright (c) 2003-2016 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+// Copyright (c) 2003-2018 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
-#ifndef BOOST_ASIO_DETAIL_IMPL_REACTIVE_DESCRIPTOR_SERVICE_IPP
-#define BOOST_ASIO_DETAIL_IMPL_REACTIVE_DESCRIPTOR_SERVICE_IPP
+#ifndef ASIO_DETAIL_IMPL_REACTIVE_DESCRIPTOR_SERVICE_IPP
+#define ASIO_DETAIL_IMPL_REACTIVE_DESCRIPTOR_SERVICE_IPP
 
 #if defined(_MSC_VER) && (_MSC_VER >= 1200)
 # pragma once
 #endif // defined(_MSC_VER) && (_MSC_VER >= 1200)
 
-#include <boost/asio/detail/config.hpp>
+#include "asio/detail/config.hpp"
 
-#if !defined(BOOST_ASIO_WINDOWS) \
-  && !defined(BOOST_ASIO_WINDOWS_RUNTIME) \
+#if !defined(ASIO_WINDOWS) \
+  && !defined(ASIO_WINDOWS_RUNTIME) \
   && !defined(__CYGWIN__)
 
-#include <boost/asio/error.hpp>
-#include <boost/asio/detail/reactive_descriptor_service.hpp>
+#include "asio/error.hpp"
+#include "asio/detail/reactive_descriptor_service.hpp"
 
-#include <boost/asio/detail/push_options.hpp>
+#include "asio/detail/push_options.hpp"
 
-namespace boost {
 namespace asio {
 namespace detail {
 
 reactive_descriptor_service::reactive_descriptor_service(
-    boost::asio::io_service& io_service)
-  : reactor_(boost::asio::use_service<reactor>(io_service))
+    asio::io_context& io_context)
+  : service_base<reactive_descriptor_service>(io_context),
+    reactor_(asio::use_service<reactor>(io_context))
 {
   reactor_.init_task();
 }
 
-void reactive_descriptor_service::shutdown_service()
+void reactive_descriptor_service::shutdown()
 {
 }
 
@@ -84,53 +84,63 @@ void reactive_descriptor_service::destroy(
 {
   if (is_open(impl))
   {
-    BOOST_ASIO_HANDLER_OPERATION(("descriptor", &impl, "close"));
+    ASIO_HANDLER_OPERATION((reactor_.context(),
+          "descriptor", &impl, impl.descriptor_, "close"));
 
     reactor_.deregister_descriptor(impl.descriptor_, impl.reactor_data_,
         (impl.state_ & descriptor_ops::possible_dup) == 0);
-  }
 
-  boost::system::error_code ignored_ec;
-  descriptor_ops::close(impl.descriptor_, impl.state_, ignored_ec);
+    asio::error_code ignored_ec;
+    descriptor_ops::close(impl.descriptor_, impl.state_, ignored_ec);
+
+    reactor_.cleanup_descriptor_data(impl.reactor_data_);
+  }
 }
 
-boost::system::error_code reactive_descriptor_service::assign(
+asio::error_code reactive_descriptor_service::assign(
     reactive_descriptor_service::implementation_type& impl,
-    const native_handle_type& native_descriptor, boost::system::error_code& ec)
+    const native_handle_type& native_descriptor, asio::error_code& ec)
 {
   if (is_open(impl))
   {
-    ec = boost::asio::error::already_open;
+    ec = asio::error::already_open;
     return ec;
   }
 
   if (int err = reactor_.register_descriptor(
         native_descriptor, impl.reactor_data_))
   {
-    ec = boost::system::error_code(err,
-        boost::asio::error::get_system_category());
+    ec = asio::error_code(err,
+        asio::error::get_system_category());
     return ec;
   }
 
   impl.descriptor_ = native_descriptor;
   impl.state_ = descriptor_ops::possible_dup;
-  ec = boost::system::error_code();
+  ec = asio::error_code();
   return ec;
 }
 
-boost::system::error_code reactive_descriptor_service::close(
+asio::error_code reactive_descriptor_service::close(
     reactive_descriptor_service::implementation_type& impl,
-    boost::system::error_code& ec)
+    asio::error_code& ec)
 {
   if (is_open(impl))
   {
-    BOOST_ASIO_HANDLER_OPERATION(("descriptor", &impl, "close"));
+    ASIO_HANDLER_OPERATION((reactor_.context(),
+          "descriptor", &impl, impl.descriptor_, "close"));
 
     reactor_.deregister_descriptor(impl.descriptor_, impl.reactor_data_,
         (impl.state_ & descriptor_ops::possible_dup) == 0);
-  }
 
-  descriptor_ops::close(impl.descriptor_, impl.state_, ec);
+    descriptor_ops::close(impl.descriptor_, impl.state_, ec);
+
+    reactor_.cleanup_descriptor_data(impl.reactor_data_);
+  }
+  else
+  {
+    ec = asio::error_code();
+  }
 
   // The descriptor is closed by the OS even if close() returns an error.
   //
@@ -151,29 +161,32 @@ reactive_descriptor_service::release(
 
   if (is_open(impl))
   {
-    BOOST_ASIO_HANDLER_OPERATION(("descriptor", &impl, "release"));
+    ASIO_HANDLER_OPERATION((reactor_.context(),
+          "descriptor", &impl, impl.descriptor_, "release"));
 
     reactor_.deregister_descriptor(impl.descriptor_, impl.reactor_data_, false);
+    reactor_.cleanup_descriptor_data(impl.reactor_data_);
     construct(impl);
   }
 
   return descriptor;
 }
 
-boost::system::error_code reactive_descriptor_service::cancel(
+asio::error_code reactive_descriptor_service::cancel(
     reactive_descriptor_service::implementation_type& impl,
-    boost::system::error_code& ec)
+    asio::error_code& ec)
 {
   if (!is_open(impl))
   {
-    ec = boost::asio::error::bad_descriptor;
+    ec = asio::error::bad_descriptor;
     return ec;
   }
 
-  BOOST_ASIO_HANDLER_OPERATION(("descriptor", &impl, "cancel"));
+  ASIO_HANDLER_OPERATION((reactor_.context(),
+        "descriptor", &impl, impl.descriptor_, "cancel"));
 
   reactor_.cancel_ops(impl.descriptor_, impl.reactor_data_);
-  ec = boost::system::error_code();
+  ec = asio::error_code();
   return ec;
 }
 
@@ -199,12 +212,11 @@ void reactive_descriptor_service::start_op(
 
 } // namespace detail
 } // namespace asio
-} // namespace boost
 
-#include <boost/asio/detail/pop_options.hpp>
+#include "asio/detail/pop_options.hpp"
 
-#endif // !defined(BOOST_ASIO_WINDOWS)
-       //   && !defined(BOOST_ASIO_WINDOWS_RUNTIME)
+#endif // !defined(ASIO_WINDOWS)
+       //   && !defined(ASIO_WINDOWS_RUNTIME)
        //   && !defined(__CYGWIN__)
 
-#endif // BOOST_ASIO_DETAIL_IMPL_REACTIVE_DESCRIPTOR_SERVICE_IPP
+#endif // ASIO_DETAIL_IMPL_REACTIVE_DESCRIPTOR_SERVICE_IPP

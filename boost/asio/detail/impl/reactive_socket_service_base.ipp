@@ -2,40 +2,40 @@
 // detail/reactive_socket_service_base.ipp
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //
-// Copyright (c) 2003-2016 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+// Copyright (c) 2003-2018 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
-#ifndef BOOST_ASIO_DETAIL_IMPL_REACTIVE_SOCKET_SERVICE_BASE_IPP
-#define BOOST_ASIO_DETAIL_IMPL_REACTIVE_SOCKET_SERVICE_BASE_IPP
+#ifndef ASIO_DETAIL_IMPL_REACTIVE_SOCKET_SERVICE_BASE_IPP
+#define ASIO_DETAIL_IMPL_REACTIVE_SOCKET_SERVICE_BASE_IPP
 
 #if defined(_MSC_VER) && (_MSC_VER >= 1200)
 # pragma once
 #endif // defined(_MSC_VER) && (_MSC_VER >= 1200)
 
-#include <boost/asio/detail/config.hpp>
+#include "asio/detail/config.hpp"
 
-#if !defined(BOOST_ASIO_HAS_IOCP) \
-  && !defined(BOOST_ASIO_WINDOWS_RUNTIME)
+#if !defined(ASIO_HAS_IOCP) \
+  && !defined(ASIO_WINDOWS_RUNTIME)
 
-#include <boost/asio/detail/reactive_socket_service_base.hpp>
+#include "asio/detail/reactive_socket_service_base.hpp"
 
-#include <boost/asio/detail/push_options.hpp>
+#include "asio/detail/push_options.hpp"
 
-namespace boost {
 namespace asio {
 namespace detail {
 
 reactive_socket_service_base::reactive_socket_service_base(
-    boost::asio::io_service& io_service)
-  : reactor_(use_service<reactor>(io_service))
+    asio::io_context& io_context)
+  : io_context_(io_context),
+    reactor_(use_service<reactor>(io_context))
 {
   reactor_.init_task();
 }
 
-void reactive_socket_service_base::shutdown_service()
+void reactive_socket_service_base::base_shutdown()
 {
 }
 
@@ -82,29 +82,39 @@ void reactive_socket_service_base::destroy(
 {
   if (impl.socket_ != invalid_socket)
   {
-    BOOST_ASIO_HANDLER_OPERATION(("socket", &impl, "close"));
+    ASIO_HANDLER_OPERATION((reactor_.context(),
+          "socket", &impl, impl.socket_, "close"));
 
     reactor_.deregister_descriptor(impl.socket_, impl.reactor_data_,
         (impl.state_ & socket_ops::possible_dup) == 0);
 
-    boost::system::error_code ignored_ec;
+    asio::error_code ignored_ec;
     socket_ops::close(impl.socket_, impl.state_, true, ignored_ec);
+
+    reactor_.cleanup_descriptor_data(impl.reactor_data_);
   }
 }
 
-boost::system::error_code reactive_socket_service_base::close(
+asio::error_code reactive_socket_service_base::close(
     reactive_socket_service_base::base_implementation_type& impl,
-    boost::system::error_code& ec)
+    asio::error_code& ec)
 {
   if (is_open(impl))
   {
-    BOOST_ASIO_HANDLER_OPERATION(("socket", &impl, "close"));
+    ASIO_HANDLER_OPERATION((reactor_.context(),
+          "socket", &impl, impl.socket_, "close"));
 
     reactor_.deregister_descriptor(impl.socket_, impl.reactor_data_,
         (impl.state_ & socket_ops::possible_dup) == 0);
-  }
 
-  socket_ops::close(impl.socket_, impl.state_, false, ec);
+    socket_ops::close(impl.socket_, impl.state_, false, ec);
+
+    reactor_.cleanup_descriptor_data(impl.reactor_data_);
+  }
+  else
+  {
+    ec = asio::error_code();
+  }
 
   // The descriptor is closed by the OS even if close() returns an error.
   //
@@ -119,30 +129,52 @@ boost::system::error_code reactive_socket_service_base::close(
   return ec;
 }
 
-boost::system::error_code reactive_socket_service_base::cancel(
+socket_type reactive_socket_service_base::release(
     reactive_socket_service_base::base_implementation_type& impl,
-    boost::system::error_code& ec)
+    asio::error_code& ec)
 {
   if (!is_open(impl))
   {
-    ec = boost::asio::error::bad_descriptor;
+    ec = asio::error::bad_descriptor;
+    return invalid_socket;
+  }
+
+  ASIO_HANDLER_OPERATION((reactor_.context(),
+        "socket", &impl, impl.socket_, "release"));
+
+  reactor_.deregister_descriptor(impl.socket_, impl.reactor_data_, false);
+  reactor_.cleanup_descriptor_data(impl.reactor_data_);
+  socket_type sock = impl.socket_;
+  construct(impl);
+  ec = asio::error_code();
+  return sock;
+}
+
+asio::error_code reactive_socket_service_base::cancel(
+    reactive_socket_service_base::base_implementation_type& impl,
+    asio::error_code& ec)
+{
+  if (!is_open(impl))
+  {
+    ec = asio::error::bad_descriptor;
     return ec;
   }
 
-  BOOST_ASIO_HANDLER_OPERATION(("socket", &impl, "cancel"));
+  ASIO_HANDLER_OPERATION((reactor_.context(),
+        "socket", &impl, impl.socket_, "cancel"));
 
   reactor_.cancel_ops(impl.socket_, impl.reactor_data_);
-  ec = boost::system::error_code();
+  ec = asio::error_code();
   return ec;
 }
 
-boost::system::error_code reactive_socket_service_base::do_open(
+asio::error_code reactive_socket_service_base::do_open(
     reactive_socket_service_base::base_implementation_type& impl,
-    int af, int type, int protocol, boost::system::error_code& ec)
+    int af, int type, int protocol, asio::error_code& ec)
 {
   if (is_open(impl))
   {
-    ec = boost::asio::error::already_open;
+    ec = asio::error::already_open;
     return ec;
   }
 
@@ -152,8 +184,8 @@ boost::system::error_code reactive_socket_service_base::do_open(
 
   if (int err = reactor_.register_descriptor(sock.get(), impl.reactor_data_))
   {
-    ec = boost::system::error_code(err,
-        boost::asio::error::get_system_category());
+    ec = asio::error_code(err,
+        asio::error::get_system_category());
     return ec;
   }
 
@@ -164,26 +196,26 @@ boost::system::error_code reactive_socket_service_base::do_open(
   case SOCK_DGRAM: impl.state_ = socket_ops::datagram_oriented; break;
   default: impl.state_ = 0; break;
   }
-  ec = boost::system::error_code();
+  ec = asio::error_code();
   return ec;
 }
 
-boost::system::error_code reactive_socket_service_base::do_assign(
+asio::error_code reactive_socket_service_base::do_assign(
     reactive_socket_service_base::base_implementation_type& impl, int type,
     const reactive_socket_service_base::native_handle_type& native_socket,
-    boost::system::error_code& ec)
+    asio::error_code& ec)
 {
   if (is_open(impl))
   {
-    ec = boost::asio::error::already_open;
+    ec = asio::error::already_open;
     return ec;
   }
 
   if (int err = reactor_.register_descriptor(
         native_socket, impl.reactor_data_))
   {
-    ec = boost::system::error_code(err,
-        boost::asio::error::get_system_category());
+    ec = asio::error_code(err,
+        asio::error::get_system_category());
     return ec;
   }
 
@@ -195,7 +227,7 @@ boost::system::error_code reactive_socket_service_base::do_assign(
   default: impl.state_ = 0; break;
   }
   impl.state_ |= socket_ops::possible_dup;
-  ec = boost::system::error_code();
+  ec = asio::error_code();
   return ec;
 }
 
@@ -224,10 +256,10 @@ void reactive_socket_service_base::start_accept_op(
     reactor_op* op, bool is_continuation, bool peer_is_open)
 {
   if (!peer_is_open)
-    start_op(impl, reactor::read_op, op, true, is_continuation, false);
+    start_op(impl, reactor::read_op, op, is_continuation, true, false);
   else
   {
-    op->ec_ = boost::asio::error::already_open;
+    op->ec_ = asio::error::already_open;
     reactor_.post_immediate_completion(op, is_continuation);
   }
 }
@@ -243,10 +275,10 @@ void reactive_socket_service_base::start_connect_op(
   {
     if (socket_ops::connect(impl.socket_, addr, addrlen, op->ec_) != 0)
     {
-      if (op->ec_ == boost::asio::error::in_progress
-          || op->ec_ == boost::asio::error::would_block)
+      if (op->ec_ == asio::error::in_progress
+          || op->ec_ == asio::error::would_block)
       {
-        op->ec_ = boost::system::error_code();
+        op->ec_ = asio::error_code();
         reactor_.start_op(reactor::connect_op, impl.socket_,
             impl.reactor_data_, op, is_continuation, false);
         return;
@@ -259,11 +291,10 @@ void reactive_socket_service_base::start_connect_op(
 
 } // namespace detail
 } // namespace asio
-} // namespace boost
 
-#include <boost/asio/detail/pop_options.hpp>
+#include "asio/detail/pop_options.hpp"
 
-#endif // !defined(BOOST_ASIO_HAS_IOCP)
-       //   && !defined(BOOST_ASIO_WINDOWS_RUNTIME)
+#endif // !defined(ASIO_HAS_IOCP)
+       //   && !defined(ASIO_WINDOWS_RUNTIME)
 
-#endif // BOOST_ASIO_DETAIL_IMPL_REACTIVE_SOCKET_SERVICE_BASE_IPP
+#endif // ASIO_DETAIL_IMPL_REACTIVE_SOCKET_SERVICE_BASE_IPP

@@ -2,32 +2,31 @@
 // generic/detail/impl/endpoint.hpp
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //
-// Copyright (c) 2003-2016 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+// Copyright (c) 2003-2018 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
-#ifndef BOOST_ASIO_GENERIC_DETAIL_IMPL_ENDPOINT_IPP
-#define BOOST_ASIO_GENERIC_DETAIL_IMPL_ENDPOINT_IPP
+#ifndef ASIO_GENERIC_DETAIL_IMPL_ENDPOINT_IPP
+#define ASIO_GENERIC_DETAIL_IMPL_ENDPOINT_IPP
 
 #if defined(_MSC_VER) && (_MSC_VER >= 1200)
 # pragma once
 #endif // defined(_MSC_VER) && (_MSC_VER >= 1200)
 
-#include <boost/asio/detail/config.hpp>
+#include "asio/detail/config.hpp"
 
 #include <cstring>
 #include <typeinfo>
-#include <boost/asio/detail/socket_ops.hpp>
-#include <boost/asio/detail/throw_error.hpp>
-#include <boost/asio/detail/throw_exception.hpp>
-#include <boost/asio/error.hpp>
-#include <boost/asio/generic/detail/endpoint.hpp>
+#include "asio/detail/socket_ops.hpp"
+#include "asio/detail/throw_error.hpp"
+#include "asio/detail/throw_exception.hpp"
+#include "asio/error.hpp"
+#include "asio/generic/detail/endpoint.hpp"
 
-#include <boost/asio/detail/push_options.hpp>
+#include "asio/detail/push_options.hpp"
 
-namespace boost {
 namespace asio {
 namespace generic {
 namespace detail {
@@ -45,10 +44,10 @@ endpoint::endpoint(const void* sock_addr,
 
 void endpoint::resize(std::size_t new_size)
 {
-  if (new_size > sizeof(boost::asio::detail::sockaddr_storage_type))
+  if (new_size > sizeof(asio::detail::sockaddr_storage_type))
   {
-    boost::system::error_code ec(boost::asio::error::invalid_argument);
-    boost::asio::detail::throw_error(ec);
+    asio::error_code ec(asio::error::invalid_argument);
+    asio::detail::throw_error(ec);
   }
   else
   {
@@ -87,15 +86,16 @@ bool operator<(const endpoint& e1, const endpoint& e2)
 void endpoint::init(const void* sock_addr,
     std::size_t sock_addr_size, int sock_protocol)
 {
-  if (sock_addr_size > sizeof(boost::asio::detail::sockaddr_storage_type))
+  if (sock_addr_size > sizeof(asio::detail::sockaddr_storage_type))
   {
-    boost::system::error_code ec(boost::asio::error::invalid_argument);
-    boost::asio::detail::throw_error(ec);
+    asio::error_code ec(asio::error::invalid_argument);
+    asio::detail::throw_error(ec);
   }
 
   using namespace std; // For memset and memcpy.
-  memset(&data_.generic, 0, sizeof(boost::asio::detail::sockaddr_storage_type));
-  memcpy(&data_.generic, sock_addr, sock_addr_size);
+  memset(&data_.generic, 0, sizeof(asio::detail::sockaddr_storage_type));
+  if (sock_addr_size > 0)
+    memcpy(&data_.generic, sock_addr, sock_addr_size);
 
   size_ = sock_addr_size;
   protocol_ = sock_protocol;
@@ -104,8 +104,7 @@ void endpoint::init(const void* sock_addr,
 } // namespace detail
 } // namespace generic
 } // namespace asio
-} // namespace boost
 
-#include <boost/asio/detail/pop_options.hpp>
+#include "asio/detail/pop_options.hpp"
 
-#endif // BOOST_ASIO_GENERIC_DETAIL_IMPL_ENDPOINT_IPP
+#endif // ASIO_GENERIC_DETAIL_IMPL_ENDPOINT_IPP

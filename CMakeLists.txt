@@ -32,6 +32,8 @@ endif()
 
 CPM_InitModule(${CPM_MODULE_NAME})
 
+CPM_ExportAdditionalIncludeDir(${CPM_MODULE_NAME} boost)
+
 #-----------------------------------------------------------------------
 # Sources configuration
 #-----------------------------------------------------------------------
@@ -39,13 +41,21 @@ set(SOURCE_FILES
       boost/asio/impl/write_at.hpp
       boost/asio/impl/serial_port_base.hpp
       boost/asio/impl/buffered_read_stream.hpp
+      boost/asio/impl/defer.hpp
+      boost/asio/impl/dispatch.hpp
       boost/asio/impl/error.ipp
+      boost/asio/impl/error_code.hpp
+      boost/asio/impl/execution_context.hpp
+      boost/asio/impl/execution_context.ipp
+      boost/asio/impl/executor.hpp
+      boost/asio/impl/executor.ipp
       boost/asio/impl/read_until.hpp
       boost/asio/impl/src.hpp
-      boost/asio/impl/io_service.ipp
+      boost/asio/impl/io_context.hpp
+      boost/asio/impl/io_context.ipp
       boost/asio/impl/connect.hpp
+      boost/asio/impl/post.hpp
       boost/asio/impl/read.hpp
-      boost/asio/impl/io_service.hpp
       boost/asio/impl/buffered_write_stream.hpp
       boost/asio/impl/use_future.hpp
       boost/asio/impl/read_at.hpp
@@ -53,11 +63,25 @@ set(SOURCE_FILES
       boost/asio/impl/handler_alloc_hook.ipp
       boost/asio/impl/spawn.hpp
       boost/asio/impl/serial_port_base.ipp
+      boost/asio/impl/system_context.hpp
+      boost/asio/impl/system_context.ipp
+      boost/asio/impl/system_executor.hpp
+      boost/asio/impl/thread_pool.hpp
+      boost/asio/impl/thread_pool.ipp
+      boost/asio/associated_allocator.hpp
+      boost/asio/associated_executor.hpp
+      boost/asio/bind_executor.hpp
       boost/asio/handler_alloc_hook.hpp
+      boost/asio/system_context.hpp
+      boost/asio/system_error.hpp
+      boost/asio/system_executor.hpp
       boost/asio/system_timer.hpp
+      boost/asio/thread.hpp
+      boost/asio/thread_pool.hpp
       boost/asio/posix/stream_descriptor.hpp
       boost/asio/posix/stream_descriptor_service.hpp
       boost/asio/posix/basic_descriptor.hpp
+      boost/asio/posix/descriptor.hpp
       boost/asio/posix/descriptor_base.hpp
       boost/asio/posix/basic_stream_descriptor.hpp
       boost/asio/streambuf.hpp
@@ -71,18 +95,9 @@ set(SOURCE_FILES
       boost/asio/ssl/impl/context.ipp
       boost/asio/ssl/impl/src.hpp
       boost/asio/ssl/impl/context.hpp
-      boost/asio/ssl/stream_service.hpp
-      boost/asio/ssl/context_service.hpp
       boost/asio/ssl/verify_context.hpp
       boost/asio/ssl/context_base.hpp
       boost/asio/ssl/stream.hpp
-      boost/asio/ssl/old/stream_service.hpp
-      boost/asio/ssl/old/context_service.hpp
-      boost/asio/ssl/old/stream.hpp
-      boost/asio/ssl/old/detail/openssl_stream_service.hpp
-      boost/asio/ssl/old/detail/openssl_context_service.hpp
-      boost/asio/ssl/old/detail/openssl_operation.hpp
-      boost/asio/ssl/old/basic_context.hpp
       boost/asio/ssl/error.hpp
       boost/asio/ssl/context.hpp
       boost/asio/ssl/detail/engine.hpp
@@ -101,8 +116,15 @@ set(SOURCE_FILES
       boost/asio/ssl/detail/write_op.hpp
       boost/asio/ssl/stream_base.hpp
       boost/asio/ssl/verify_mode.hpp
-      boost/asio/ssl/basic_context.hpp
       boost/asio/ssl/rfc2818_verification.hpp
+      boost/asio/ts/buffer.hpp
+      boost/asio/ts/executor.hpp
+      boost/asio/ts/internet.hpp
+      boost/asio/ts/io_context.hpp
+      boost/asio/ts/net.hpp
+      boost/asio/ts/netfwd.hpp
+      boost/asio/ts/socket.hpp
+      boost/asio/ts/timer.hpp
       boost/asio/serial_port.hpp
       boost/asio/basic_deadline_timer.hpp
       boost/asio/serial_port_base.hpp
@@ -121,7 +143,14 @@ set(SOURCE_FILES
       boost/asio/high_resolution_timer.hpp
       boost/asio/strand.hpp
       boost/asio/read.hpp
+      boost/asio/defer.hpp
+      boost/asio/dispatch.hpp
       boost/asio/error.hpp
+      boost/asio/error_code.hpp
+      boost/asio/execution_context.hpp
+      boost/asio/executor.hpp
+      boost/asio/executor_work_guard.hpp
+      boost/asio/experimental.hpp
       boost/asio/ssl.hpp
       boost/asio/buffered_stream_fwd.hpp
       boost/asio/basic_socket.hpp
@@ -134,12 +163,15 @@ set(SOURCE_FILES
       boost/asio/basic_socket_streambuf.hpp
       boost/asio/version.hpp
       boost/asio/buffered_read_stream_fwd.hpp
+      boost/asio/packaged_task.hpp
       boost/asio/placeholders.hpp
+      boost/asio/post.hpp
       boost/asio/detail/buffer_resize_guard.hpp
       boost/asio/detail/socket_ops.hpp
       boost/asio/detail/pop_options.hpp
-      boost/asio/detail/win_iocp_io_service.hpp
-      boost/asio/detail/impl/win_iocp_io_service.hpp
+      boost/asio/detail/win_global.hpp
+      boost/asio/detail/win_iocp_io_context.hpp
+      boost/asio/detail/impl/win_iocp_io_context.hpp
       boost/asio/detail/impl/signal_set_service.ipp
       boost/asio/detail/impl/epoll_reactor.hpp
       boost/asio/detail/impl/reactive_serial_port_service.ipp
@@ -163,8 +195,8 @@ set(SOURCE_FILES
       boost/asio/detail/impl/winrt_timer_scheduler.hpp
       boost/asio/detail/impl/strand_service.ipp
       boost/asio/detail/impl/kqueue_reactor.ipp
+      boost/asio/detail/impl/null_event.ipp
       boost/asio/detail/impl/socket_select_interrupter.ipp
-      boost/asio/detail/impl/task_io_service.hpp
       boost/asio/detail/impl/handler_tracking.ipp
       boost/asio/detail/impl/win_thread.ipp
       boost/asio/detail/impl/posix_thread.ipp
@@ -172,19 +204,21 @@ set(SOURCE_FILES
       boost/asio/detail/impl/winrt_timer_scheduler.ipp
       boost/asio/detail/impl/win_mutex.ipp
       boost/asio/detail/impl/strand_service.hpp
+      boost/asio/detail/impl/strand_executor_service.hpp
+      boost/asio/detail/impl/strand_executor_service.ipp
       boost/asio/detail/impl/winrt_ssocket_service_base.ipp
       boost/asio/detail/impl/buffer_sequence_adapter.ipp
       boost/asio/detail/impl/kqueue_reactor.hpp
       boost/asio/detail/impl/eventfd_select_interrupter.ipp
-      boost/asio/detail/impl/task_io_service.ipp
       boost/asio/detail/impl/win_iocp_handle_service.ipp
       boost/asio/detail/impl/epoll_reactor.ipp
-      boost/asio/detail/impl/win_iocp_io_service.ipp
+      boost/asio/detail/impl/win_iocp_io_context.ipp
       boost/asio/detail/impl/socket_ops.ipp
       boost/asio/detail/impl/posix_tss_ptr.ipp
       boost/asio/detail/impl/dev_poll_reactor.hpp
       boost/asio/detail/impl/pipe_select_interrupter.ipp
       boost/asio/detail/impl/select_reactor.hpp
+      boost/asio/detail/impl/scheduler.ipp
       boost/asio/detail/impl/win_object_handle_service.ipp
       boost/asio/detail/impl/posix_mutex.ipp
       boost/asio/detail/resolve_endpoint_op.hpp
@@ -193,11 +227,13 @@ set(SOURCE_FILES
       boost/asio/detail/posix_tss_ptr.hpp
       boost/asio/detail/win_iocp_socket_accept_op.hpp
       boost/asio/detail/event.hpp
+      boost/asio/detail/executor_op.hpp
       boost/asio/detail/reactor.hpp
       boost/asio/detail/scoped_ptr.hpp
       boost/asio/detail/pipe_select_interrupter.hpp
       boost/asio/detail/gcc_x86_fenced_block.hpp
       boost/asio/detail/handler_type_requirements.hpp
+      boost/asio/detail/handler_work.hpp
       boost/asio/detail/null_thread.hpp
       boost/asio/detail/winrt_socket_connect_op.hpp
       boost/asio/detail/handler_alloc_helpers.hpp
@@ -206,18 +242,21 @@ set(SOURCE_FILES
       boost/asio/detail/std_thread.hpp
       boost/asio/detail/consuming_buffers.hpp
       boost/asio/detail/wait_op.hpp
+      boost/asio/detail/posix_global.hpp
       boost/asio/detail/posix_mutex.hpp
       boost/asio/detail/date_time_fwd.hpp
       boost/asio/detail/win_object_handle_service.hpp
       boost/asio/detail/timer_scheduler_fwd.hpp
       boost/asio/detail/variadic_templates.hpp
       boost/asio/detail/push_options.hpp
+      boost/asio/detail/chrono.hpp
       boost/asio/detail/chrono_time_traits.hpp
       boost/asio/detail/null_static_mutex.hpp
       boost/asio/detail/null_tss_ptr.hpp
       boost/asio/detail/posix_thread.hpp
       boost/asio/detail/win_thread.hpp
-      boost/asio/detail/function.hpp
+      boost/asio/detail/functional.hpp
+      boost/asio/detail/global.hpp
       boost/asio/detail/descriptor_write_op.hpp
       boost/asio/detail/win_iocp_handle_write_op.hpp
       boost/asio/detail/null_fenced_block.hpp
@@ -228,11 +267,14 @@ set(SOURCE_FILES
       boost/asio/detail/winrt_socket_send_op.hpp
       boost/asio/detail/reactive_socket_sendto_op.hpp
       boost/asio/detail/atomic_count.hpp
+      boost/asio/detail/std_fenced_block.hpp
+      boost/asio/detail/std_global.hpp
       boost/asio/detail/std_mutex.hpp
       boost/asio/detail/completion_handler.hpp
       boost/asio/detail/reactive_socket_recv_op.hpp
       boost/asio/detail/winrt_timer_scheduler.hpp
       boost/asio/detail/resolve_op.hpp
+      boost/asio/detail/resolve_query_op.hpp
       boost/asio/detail/winrt_ssocket_service_base.hpp
       boost/asio/detail/op_queue.hpp
       boost/asio/detail/win_mutex.hpp
@@ -244,7 +286,6 @@ set(SOURCE_FILES
       boost/asio/detail/buffer_sequence_adapter.hpp
       boost/asio/detail/posix_fd_set_adapter.hpp
       boost/asio/detail/socket_holder.hpp
-      boost/asio/detail/task_io_service.hpp
       boost/asio/detail/std_static_mutex.hpp
       boost/asio/detail/win_iocp_operation.hpp
       boost/asio/detail/fenced_block.hpp
@@ -252,6 +293,7 @@ set(SOURCE_FILES
       boost/asio/detail/winrt_async_manager.hpp
       boost/asio/detail/socket_option.hpp
       boost/asio/detail/reactive_socket_accept_op.hpp
+      boost/asio/detail/reactive_wait_op.hpp
       boost/asio/detail/win_iocp_handle_service.hpp
       boost/asio/detail/win_fd_set_adapter.hpp
       boost/asio/detail/signal_init.hpp
@@ -274,6 +316,7 @@ set(SOURCE_FILES
       boost/asio/detail/service_registry.hpp
       boost/asio/detail/array_fwd.hpp
       boost/asio/detail/winsock_init.hpp
+      boost/asio/detail/work_dispatcher.hpp
       boost/asio/detail/object_pool.hpp
       boost/asio/detail/hash_map.hpp
       boost/asio/detail/winrt_resolver_service.hpp
@@ -285,9 +328,10 @@ set(SOURCE_FILES
       boost/asio/detail/null_reactor.hpp
       boost/asio/detail/winrt_ssocket_service.hpp
       boost/asio/detail/null_event.hpp
+      boost/asio/detail/null_global.hpp
       boost/asio/detail/reactive_socket_send_op.hpp
+      boost/asio/detail/strand_executor_service.hpp
       boost/asio/detail/strand_service.hpp
-      boost/asio/detail/addressof.hpp
       boost/asio/detail/assert.hpp
       boost/asio/detail/solaris_fenced_block.hpp
       boost/asio/detail/kqueue_reactor.hpp
@@ -295,21 +339,19 @@ set(SOURCE_FILES
       boost/asio/detail/handler_invoke_helpers.hpp
       boost/asio/detail/reactor_op.hpp
       boost/asio/detail/dependent_type.hpp
-      boost/asio/detail/task_io_service_operation.hpp
       boost/asio/detail/io_control.hpp
+      boost/asio/detail/is_buffer_sequence.hpp
+      boost/asio/detail/is_executor.hpp
       boost/asio/detail/reactive_socket_recvfrom_op.hpp
       boost/asio/detail/signal_handler.hpp
       boost/asio/detail/socket_select_interrupter.hpp
       boost/asio/detail/win_iocp_socket_connect_op.hpp
       boost/asio/detail/signal_op.hpp
-      boost/asio/detail/shared_ptr.hpp
       boost/asio/detail/reactive_null_buffers_op.hpp
       boost/asio/detail/win_iocp_socket_recv_op.hpp
       boost/asio/detail/deadline_timer_service.hpp
       boost/asio/detail/handler_tracking.hpp
       boost/asio/detail/socket_types.hpp
-      boost/asio/detail/weak_ptr.hpp
-      boost/asio/detail/task_io_service_thread_info.hpp
       boost/asio/detail/throw_exception.hpp
       boost/asio/detail/timer_queue_set.hpp
       boost/asio/detail/win_tss_ptr.hpp
@@ -318,6 +360,7 @@ set(SOURCE_FILES
       boost/asio/detail/regex_fwd.hpp
       boost/asio/detail/timer_queue.hpp
       boost/asio/detail/win_iocp_thread_info.hpp
+      boost/asio/detail/win_iocp_wait_op.hpp
       boost/asio/detail/reactive_socket_connect_op.hpp
       boost/asio/detail/tss_ptr.hpp
       boost/asio/detail/win_iocp_serial_port_service.hpp
@@ -327,12 +370,16 @@ set(SOURCE_FILES
       boost/asio/detail/operation.hpp
       boost/asio/detail/timer_scheduler.hpp
       boost/asio/detail/mutex.hpp
+      boost/asio/detail/memory.hpp
       boost/asio/detail/thread.hpp
+      boost/asio/detail/thread_context.hpp
+      boost/asio/detail/thread_group.hpp
       boost/asio/detail/timer_queue_ptime.hpp
       boost/asio/detail/buffered_stream_storage.hpp
       boost/asio/detail/fd_set_adapter.hpp
       boost/asio/detail/dev_poll_reactor.hpp
       boost/asio/detail/reactor_fwd.hpp
+      boost/asio/detail/cstddef.hpp
       boost/asio/detail/cstdint.hpp
       boost/asio/detail/wait_handler.hpp
       boost/asio/detail/select_reactor.hpp
@@ -342,7 +389,8 @@ set(SOURCE_FILES
       boost/asio/detail/bind_handler.hpp
       boost/asio/detail/win_iocp_overlapped_op.hpp
       boost/asio/detail/null_signal_blocker.hpp
-      boost/asio/detail/winapi_thread.hpp
+      boost/asio/detail/winapp_thread.hpp
+      boost/asio/detail/wince_thread.hpp
       boost/asio/detail/reactive_socket_service_base.hpp
       boost/asio/detail/reactive_descriptor_service.hpp
       boost/asio/detail/base_from_completion_cond.hpp
@@ -356,6 +404,20 @@ set(SOURCE_FILES
       boost/asio/detail/win_static_mutex.hpp
       boost/asio/detail/resolver_service.hpp
       boost/asio/detail/timer_queue_base.hpp
+      boost/asio/detail/concurrency_hint.hpp
+      boost/asio/detail/conditionally_enabled_event.hpp
+      boost/asio/detail/conditionally_enabled_mutex.hpp
+      boost/asio/detail/recycling_allocator.hpp
+      boost/asio/detail/scheduler.hpp
+      boost/asio/detail/scheduler_operation.hpp
+      boost/asio/detail/scheduler_thread_info.hpp
+      boost/asio/detail/string_view.hpp
+      boost/asio/experimental/impl/co_spawn.hpp
+      boost/asio/experimental/impl/detached.hpp
+      boost/asio/experimental/impl/redirect_error.hpp
+      boost/asio/experimental/co_spawn.hpp
+      boost/asio/experimental/detached.hpp
+      boost/asio/experimental/redirect_error.hpp
       boost/asio/basic_datagram_socket.hpp
       boost/asio/async_result.hpp
       boost/asio/socket_acceptor_service.hpp
@@ -363,11 +425,15 @@ set(SOURCE_FILES
       boost/asio/coroutine.hpp
       boost/asio/basic_streambuf.hpp
       boost/asio/buffered_write_stream_fwd.hpp
+      boost/asio/io_context.hpp
+      boost/asio/io_context_strand.hpp
       boost/asio/io_service.hpp
+      boost/asio/io_service_strand.hpp
       boost/asio/basic_socket_acceptor.hpp
       boost/asio/socket_base.hpp
       boost/asio/buffered_write_stream.hpp
       boost/asio/handler_invoke_hook.hpp
+      boost/asio/is_executor.hpp
       boost/asio/is_read_buffered.hpp
       boost/asio/basic_raw_socket.hpp
       boost/asio/wait_traits.hpp
@@ -376,6 +442,7 @@ set(SOURCE_FILES
       boost/asio/basic_serial_port.hpp
       boost/asio/basic_streambuf_fwd.hpp
       boost/asio/use_future.hpp
+      boost/asio/uses_executor.hpp
       boost/asio/read_at.hpp
       boost/asio/generic/datagram_protocol.hpp
       boost/asio/generic/seq_packet_protocol.hpp
@@ -400,6 +467,7 @@ set(SOURCE_FILES
       boost/asio/windows/stream_handle.hpp
       boost/asio/windows/basic_object_handle.hpp
       boost/asio/windows/object_handle.hpp
+      boost/asio/windows/overlapped_handle.hpp
       boost/asio/windows/overlapped_ptr.hpp
       boost/asio/basic_seq_packet_socket.hpp
       boost/asio/stream_socket_service.hpp
@@ -411,22 +479,35 @@ set(SOURCE_FILES
       boost/asio/ip/impl/address.ipp
       boost/asio/ip/impl/address_v4.hpp
       boost/asio/ip/impl/basic_endpoint.hpp
+      boost/asio/ip/impl/network_v4.hpp
+      boost/asio/ip/impl/network_v4.ipp
+      boost/asio/ip/impl/network_v6.hpp
+      boost/asio/ip/impl/network_v6.ipp
       boost/asio/ip/icmp.hpp
       boost/asio/ip/v6_only.hpp
       boost/asio/ip/unicast.hpp
       boost/asio/ip/basic_resolver_iterator.hpp
       boost/asio/ip/basic_resolver.hpp
+      boost/asio/ip/basic_resolver_base.hpp
+      boost/asio/ip/basic_resolver_results.hpp
       boost/asio/ip/host_name.hpp
+      boost/asio/ip/network_v4.hpp
+      boost/asio/ip/network_v6.hpp
       boost/asio/ip/address.hpp
       boost/asio/ip/address_v6.hpp
+      boost/asio/ip/address_v6_iterator.hpp
+      boost/asio/ip/address_v6_range.hpp
       boost/asio/ip/tcp.hpp
       boost/asio/ip/detail/impl/endpoint.ipp
       boost/asio/ip/detail/socket_option.hpp
       boost/asio/ip/detail/endpoint.hpp
       boost/asio/ip/address_v4.hpp
+      boost/asio/ip/address_v4_iterator.hpp
+      boost/asio/ip/address_v4_range.hpp
       boost/asio/ip/resolver_query_base.hpp
       boost/asio/ip/basic_resolver_entry.hpp
       boost/asio/ip/udp.hpp
+      boost/asio/ip/bad_address_cast.hpp
       boost/asio/ip/basic_endpoint.hpp
       boost/asio/ip/multicast.hpp
       boost/asio/ip/basic_resolver_query.hpp

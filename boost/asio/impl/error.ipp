@@ -2,37 +2,36 @@
 // impl/error.ipp
 // ~~~~~~~~~~~~~~
 //
-// Copyright (c) 2003-2016 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+// Copyright (c) 2003-2018 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
-#ifndef BOOST_ASIO_IMPL_ERROR_IPP
-#define BOOST_ASIO_IMPL_ERROR_IPP
+#ifndef ASIO_IMPL_ERROR_IPP
+#define ASIO_IMPL_ERROR_IPP
 
 #if defined(_MSC_VER) && (_MSC_VER >= 1200)
 # pragma once
 #endif // defined(_MSC_VER) && (_MSC_VER >= 1200)
 
-#include <boost/asio/detail/config.hpp>
+#include "asio/detail/config.hpp"
 #include <string>
-#include <boost/asio/error.hpp>
+#include "asio/error.hpp"
 
-#include <boost/asio/detail/push_options.hpp>
+#include "asio/detail/push_options.hpp"
 
-namespace boost {
 namespace asio {
 namespace error {
 
-#if !defined(BOOST_ASIO_WINDOWS) && !defined(__CYGWIN__)
+#if !defined(ASIO_WINDOWS) && !defined(__CYGWIN__)
 
 namespace detail {
 
-class netdb_category : public boost::system::error_category
+class netdb_category : public asio::error_category
 {
 public:
-  const char* name() const BOOST_ASIO_ERROR_CATEGORY_NOEXCEPT
+  const char* name() const ASIO_ERROR_CATEGORY_NOEXCEPT
   {
     return "asio.netdb";
   }
@@ -53,7 +52,7 @@ public:
 
 } // namespace detail
 
-const boost::system::error_category& get_netdb_category()
+const asio::error_category& get_netdb_category()
 {
   static detail::netdb_category instance;
   return instance;
@@ -61,10 +60,10 @@ const boost::system::error_category& get_netdb_category()
 
 namespace detail {
 
-class addrinfo_category : public boost::system::error_category
+class addrinfo_category : public asio::error_category
 {
 public:
-  const char* name() const BOOST_ASIO_ERROR_CATEGORY_NOEXCEPT
+  const char* name() const ASIO_ERROR_CATEGORY_NOEXCEPT
   {
     return "asio.addrinfo";
   }
@@ -81,20 +80,20 @@ public:
 
 } // namespace detail
 
-const boost::system::error_category& get_addrinfo_category()
+const asio::error_category& get_addrinfo_category()
 {
   static detail::addrinfo_category instance;
   return instance;
 }
 
-#endif // !defined(BOOST_ASIO_WINDOWS) && !defined(__CYGWIN__)
+#endif // !defined(ASIO_WINDOWS) && !defined(__CYGWIN__)
 
 namespace detail {
 
-class misc_category : public boost::system::error_category
+class misc_category : public asio::error_category
 {
 public:
-  const char* name() const BOOST_ASIO_ERROR_CATEGORY_NOEXCEPT
+  const char* name() const ASIO_ERROR_CATEGORY_NOEXCEPT
   {
     return "asio.misc";
   }
@@ -115,7 +114,7 @@ public:
 
 } // namespace detail
 
-const boost::system::error_category& get_misc_category()
+const asio::error_category& get_misc_category()
 {
   static detail::misc_category instance;
   return instance;
@@ -123,8 +122,7 @@ const boost::system::error_category& get_misc_category()
 
 } // namespace error
 } // namespace asio
-} // namespace boost
 
-#include <boost/asio/detail/pop_options.hpp>
+#include "asio/detail/pop_options.hpp"
 
-#endif // BOOST_ASIO_IMPL_ERROR_IPP
+#endif // ASIO_IMPL_ERROR_IPP

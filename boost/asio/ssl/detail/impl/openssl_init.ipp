@@ -3,30 +3,29 @@
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //
 // Copyright (c) 2005 Voipster / Indrek dot Juhani at voipster dot com
-// Copyright (c) 2005-2016 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+// Copyright (c) 2005-2018 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
-#ifndef BOOST_ASIO_SSL_DETAIL_IMPL_OPENSSL_INIT_IPP
-#define BOOST_ASIO_SSL_DETAIL_IMPL_OPENSSL_INIT_IPP
+#ifndef ASIO_SSL_DETAIL_IMPL_OPENSSL_INIT_IPP
+#define ASIO_SSL_DETAIL_IMPL_OPENSSL_INIT_IPP
 
 #if defined(_MSC_VER) && (_MSC_VER >= 1200)
 # pragma once
 #endif // defined(_MSC_VER) && (_MSC_VER >= 1200)
 
-#include <boost/asio/detail/config.hpp>
+#include "asio/detail/config.hpp"
 #include <vector>
-#include <boost/asio/detail/assert.hpp>
-#include <boost/asio/detail/mutex.hpp>
-#include <boost/asio/detail/tss_ptr.hpp>
-#include <boost/asio/ssl/detail/openssl_init.hpp>
-#include <boost/asio/ssl/detail/openssl_types.hpp>
+#include "asio/detail/assert.hpp"
+#include "asio/detail/mutex.hpp"
+#include "asio/detail/tss_ptr.hpp"
+#include "asio/ssl/detail/openssl_init.hpp"
+#include "asio/ssl/detail/openssl_types.hpp"
 
-#include <boost/asio/detail/push_options.hpp>
+#include "asio/detail/push_options.hpp"
 
-namespace boost {
 namespace asio {
 namespace ssl {
 namespace detail {
@@ -36,14 +35,14 @@ class openssl_init_base::do_init
 public:
   do_init()
   {
+#if (OPENSSL_VERSION_NUMBER < 0x10100000L)
     ::SSL_library_init();
     ::SSL_load_error_strings();        
     ::OpenSSL_add_all_algorithms();
 
-#if (OPENSSL_VERSION_NUMBER < 0x10100000L)
     mutexes_.resize(::CRYPTO_num_locks());
     for (size_t i = 0; i < mutexes_.size(); ++i)
-      mutexes_[i].reset(new boost::asio::detail::mutex);
+      mutexes_[i].reset(new asio::detail::mutex);
     ::CRYPTO_set_locking_callback(&do_init::openssl_locking_func);
 #endif // (OPENSSL_VERSION_NUMBER < 0x10100000L)
 #if (OPENSSL_VERSION_NUMBER < 0x10000000L)
@@ -80,10 +79,12 @@ public:
     ::ERR_remove_thread_state(NULL);
 #endif // (OPENSSL_VERSION_NUMBER < 0x10000000L)
 #if (OPENSSL_VERSION_NUMBER >= 0x10002000L) \
-    && (OPENSSL_VERSION_NUMBER < 0x10100000L)
+    && (OPENSSL_VERSION_NUMBER < 0x10100000L) \
+    && !defined(SSL_OP_NO_COMPRESSION)
     ::SSL_COMP_free_compression_methods();
 #endif // (OPENSSL_VERSION_NUMBER >= 0x10002000L)
        // && (OPENSSL_VERSION_NUMBER < 0x10100000L)
+       // && !defined(SSL_OP_NO_COMPRESSION)
 #if !defined(OPENSSL_IS_BORINGSSL)
     ::CONF_modules_unload(1);
 #endif // !defined(OPENSSL_IS_BORINGSSL)
@@ -107,13 +108,13 @@ private:
 #if (OPENSSL_VERSION_NUMBER < 0x10000000L)
   static unsigned long openssl_id_func()
   {
-#if defined(BOOST_ASIO_WINDOWS) || defined(__CYGWIN__)
+#if defined(ASIO_WINDOWS) || defined(__CYGWIN__)
     return ::GetCurrentThreadId();
-#else // defined(BOOST_ASIO_WINDOWS) || defined(__CYGWIN__)
+#else // defined(ASIO_WINDOWS) || defined(__CYGWIN__)
     void* id = &errno;
-    BOOST_ASIO_ASSERT(sizeof(unsigned long) >= sizeof(void*));
+    ASIO_ASSERT(sizeof(unsigned long) >= sizeof(void*));
     return reinterpret_cast<unsigned long>(id);
-#endif // defined(BOOST_ASIO_WINDOWS) || defined(__CYGWIN__)
+#endif // defined(ASIO_WINDOWS) || defined(__CYGWIN__)
   }
 #endif // (OPENSSL_VERSION_NUMBER < 0x10000000L)
 
@@ -128,8 +129,8 @@ private:
   }
 
   // Mutexes to be used in locking callbacks.
-  std::vector<boost::asio::detail::shared_ptr<
-        boost::asio::detail::mutex> > mutexes_;
+  std::vector<asio::detail::shared_ptr<
+        asio::detail::mutex> > mutexes_;
 #endif // (OPENSSL_VERSION_NUMBER < 0x10100000L)
 
 #if !defined(SSL_OP_NO_COMPRESSION) \
@@ -139,10 +140,10 @@ private:
        // && (OPENSSL_VERSION_NUMBER >= 0x00908000L)
 };
 
-boost::asio::detail::shared_ptr<openssl_init_base::do_init>
+asio::detail::shared_ptr<openssl_init_base::do_init>
 openssl_init_base::instance()
 {
-  static boost::asio::detail::shared_ptr<do_init> init(new do_init);
+  static asio::detail::shared_ptr<do_init> init(new do_init);
   return init;
 }
 
@@ -158,8 +159,7 @@ STACK_OF(SSL_COMP)* openssl_init_base::get_null_compression_methods()
 } // namespace detail
 } // namespace ssl
 } // namespace asio
-} // namespace boost
 
-#include <boost/asio/detail/pop_options.hpp>
+#include "asio/detail/pop_options.hpp"
 
-#endif // BOOST_ASIO_SSL_DETAIL_IMPL_OPENSSL_INIT_IPP
+#endif // ASIO_SSL_DETAIL_IMPL_OPENSSL_INIT_IPP

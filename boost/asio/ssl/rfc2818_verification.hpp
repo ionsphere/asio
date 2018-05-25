@@ -2,34 +2,29 @@
 // ssl/rfc2818_verification.hpp
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //
-// Copyright (c) 2003-2016 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+// Copyright (c) 2003-2018 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
-#ifndef BOOST_ASIO_SSL_RFC2818_VERIFICATION_HPP
-#define BOOST_ASIO_SSL_RFC2818_VERIFICATION_HPP
+#ifndef ASIO_SSL_RFC2818_VERIFICATION_HPP
+#define ASIO_SSL_RFC2818_VERIFICATION_HPP
 
 #if defined(_MSC_VER) && (_MSC_VER >= 1200)
 # pragma once
 #endif // defined(_MSC_VER) && (_MSC_VER >= 1200)
 
-#include <boost/asio/detail/config.hpp>
+#include "asio/detail/config.hpp"
 
-#if !defined(BOOST_ASIO_ENABLE_OLD_SSL)
-# include <string>
-# include <boost/asio/ssl/detail/openssl_types.hpp>
-# include <boost/asio/ssl/verify_context.hpp>
-#endif // !defined(BOOST_ASIO_ENABLE_OLD_SSL)
+#include <string>
+#include "asio/ssl/detail/openssl_types.hpp"
+#include "asio/ssl/verify_context.hpp"
 
-#include <boost/asio/detail/push_options.hpp>
+#include "asio/detail/push_options.hpp"
 
-namespace boost {
 namespace asio {
 namespace ssl {
-
-#if !defined(BOOST_ASIO_ENABLE_OLD_SSL)
 
 /// Verifies a certificate against a hostname according to the rules described
 /// in RFC 2818.
@@ -38,8 +33,8 @@ namespace ssl {
  * The following example shows how to synchronously open a secure connection to
  * a given host name:
  * @code
- * using boost::asio::ip::tcp;
- * namespace ssl = boost::asio::ssl;
+ * using asio::ip::tcp;
+ * namespace ssl = asio::ssl;
  * typedef ssl::stream<tcp::socket> ssl_socket;
  *
  * // Create a context that uses the default paths for finding CA certificates.
@@ -47,11 +42,11 @@ namespace ssl {
  * ctx.set_default_verify_paths();
  *
  * // Open a socket and connect it to the remote host.
- * boost::asio::io_service io_service;
- * ssl_socket sock(io_service, ctx);
- * tcp::resolver resolver(io_service);
+ * asio::io_context io_context;
+ * ssl_socket sock(io_context, ctx);
+ * tcp::resolver resolver(io_context);
  * tcp::resolver::query query("host.name", "https");
- * boost::asio::connect(sock.lowest_layer(), resolver.resolve(query));
+ * asio::connect(sock.lowest_layer(), resolver.resolve(query));
  * sock.lowest_layer().set_option(tcp::no_delay(true));
  *
  * // Perform SSL handshake and verify the remote host's certificate.
@@ -75,11 +70,11 @@ public:
   }
 
   /// Perform certificate verification.
-  BOOST_ASIO_DECL bool operator()(bool preverified, verify_context& ctx) const;
+  ASIO_DECL bool operator()(bool preverified, verify_context& ctx) const;
 
 private:
   // Helper function to check a host name against a pattern.
-  BOOST_ASIO_DECL static bool match_pattern(const char* pattern,
+  ASIO_DECL static bool match_pattern(const char* pattern,
       std::size_t pattern_length, const char* host);
 
   // Helper function to check a host name against an IPv4 address
@@ -87,16 +82,13 @@ private:
   std::string host_;
 };
 
-#endif // defined(BOOST_ASIO_ENABLE_OLD_SSL)
-
 } // namespace ssl
 } // namespace asio
-} // namespace boost
 
-#include <boost/asio/detail/pop_options.hpp>
+#include "asio/detail/pop_options.hpp"
 
-#if defined(BOOST_ASIO_HEADER_ONLY)
-# include <boost/asio/ssl/impl/rfc2818_verification.ipp>
-#endif // defined(BOOST_ASIO_HEADER_ONLY)
+#if defined(ASIO_HEADER_ONLY)
+# include "asio/ssl/impl/rfc2818_verification.ipp"
+#endif // defined(ASIO_HEADER_ONLY)
 
-#endif // BOOST_ASIO_SSL_RFC2818_VERIFICATION_HPP
+#endif // ASIO_SSL_RFC2818_VERIFICATION_HPP

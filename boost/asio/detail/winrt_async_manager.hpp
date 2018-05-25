@@ -2,43 +2,42 @@
 // detail/winrt_async_manager.hpp
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //
-// Copyright (c) 2003-2016 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+// Copyright (c) 2003-2018 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
-#ifndef BOOST_ASIO_DETAIL_WINRT_ASYNC_MANAGER_HPP
-#define BOOST_ASIO_DETAIL_WINRT_ASYNC_MANAGER_HPP
+#ifndef ASIO_DETAIL_WINRT_ASYNC_MANAGER_HPP
+#define ASIO_DETAIL_WINRT_ASYNC_MANAGER_HPP
 
 #if defined(_MSC_VER) && (_MSC_VER >= 1200)
 # pragma once
 #endif // defined(_MSC_VER) && (_MSC_VER >= 1200)
 
-#include <boost/asio/detail/config.hpp>
+#include "asio/detail/config.hpp"
 
-#if defined(BOOST_ASIO_WINDOWS_RUNTIME)
+#if defined(ASIO_WINDOWS_RUNTIME)
 
 #include <future>
-#include <boost/asio/detail/atomic_count.hpp>
-#include <boost/asio/detail/winrt_async_op.hpp>
-#include <boost/asio/error.hpp>
-#include <boost/asio/io_service.hpp>
+#include "asio/detail/atomic_count.hpp"
+#include "asio/detail/winrt_async_op.hpp"
+#include "asio/error.hpp"
+#include "asio/io_context.hpp"
 
-#include <boost/asio/detail/push_options.hpp>
+#include "asio/detail/push_options.hpp"
 
-namespace boost {
 namespace asio {
 namespace detail {
 
 class winrt_async_manager
-  : public boost::asio::detail::service_base<winrt_async_manager>
+  : public asio::detail::service_base<winrt_async_manager>
 {
 public:
   // Constructor.
-  winrt_async_manager(boost::asio::io_service& io_service)
-    : boost::asio::detail::service_base<winrt_async_manager>(io_service),
-      io_service_(use_service<io_service_impl>(io_service)),
+  winrt_async_manager(asio::io_context& io_context)
+    : asio::detail::service_base<winrt_async_manager>(io_context),
+      io_context_(use_service<io_context_impl>(io_context)),
       outstanding_ops_(1)
   {
   }
@@ -49,7 +48,7 @@ public:
   }
 
   // Destroy all user-defined handler objects owned by the service.
-  void shutdown_service()
+  void shutdown()
   {
     if (--outstanding_ops_ > 0)
     {
@@ -60,12 +59,12 @@ public:
   }
 
   void sync(Windows::Foundation::IAsyncAction^ action,
-      boost::system::error_code& ec)
+      asio::error_code& ec)
   {
     using namespace Windows::Foundation;
     using Windows::Foundation::AsyncStatus;
 
-    auto promise = std::make_shared<std::promise<boost::system::error_code>>();
+    auto promise = std::make_shared<std::promise<asio::error_code>>();
     auto future = promise->get_future();
 
     action->Completed = ref new AsyncActionCompletedHandler(
@@ -74,14 +73,14 @@ public:
         switch (status)
         {
         case AsyncStatus::Canceled:
-          promise->set_value(boost::asio::error::operation_aborted);
+          promise->set_value(asio::error::operation_aborted);
           break;
         case AsyncStatus::Error:
         case AsyncStatus::Completed:
         default:
-          boost::system::error_code ec(
+          asio::error_code ec(
               action->ErrorCode.Value,
-              boost::system::system_category());
+              asio::system_category());
           promise->set_value(ec);
           break;
         }
@@ -92,12 +91,12 @@ public:
 
   template <typename TResult>
   TResult sync(Windows::Foundation::IAsyncOperation<TResult>^ operation,
-      boost::system::error_code& ec)
+      asio::error_code& ec)
   {
     using namespace Windows::Foundation;
     using Windows::Foundation::AsyncStatus;
 
-    auto promise = std::make_shared<std::promise<boost::system::error_code>>();
+    auto promise = std::make_shared<std::promise<asio::error_code>>();
     auto future = promise->get_future();
 
     operation->Completed = ref new AsyncOperationCompletedHandler<TResult>(
@@ -106,14 +105,14 @@ public:
         switch (status)
         {
         case AsyncStatus::Canceled:
-          promise->set_value(boost::asio::error::operation_aborted);
+          promise->set_value(asio::error::operation_aborted);
           break;
         case AsyncStatus::Error:
         case AsyncStatus::Completed:
         default:
-          boost::system::error_code ec(
+          asio::error_code ec(
               operation->ErrorCode.Value,
-              boost::system::system_category());
+              asio::system_category());
           promise->set_value(ec);
           break;
         }
@@ -127,12 +126,12 @@ public:
   TResult sync(
       Windows::Foundation::IAsyncOperationWithProgress<
         TResult, TProgress>^ operation,
-      boost::system::error_code& ec)
+      asio::error_code& ec)
   {
     using namespace Windows::Foundation;
     using Windows::Foundation::AsyncStatus;
 
-    auto promise = std::make_shared<std::promise<boost::system::error_code>>();
+    auto promise = std::make_shared<std::promise<asio::error_code>>();
     auto future = promise->get_future();
 
     operation->Completed
@@ -143,16 +142,16 @@ public:
           switch (status)
           {
           case AsyncStatus::Canceled:
-            promise->set_value(boost::asio::error::operation_aborted);
+            promise->set_value(asio::error::operation_aborted);
             break;
           case AsyncStatus::Started:
             break;
           case AsyncStatus::Error:
           case AsyncStatus::Completed:
           default:
-            boost::system::error_code ec(
+            asio::error_code ec(
                 operation->ErrorCode.Value,
-                boost::system::system_category());
+                asio::system_category());
             promise->set_value(ec);
             break;
           }
@@ -174,24 +173,24 @@ public:
         switch (status)
         {
         case AsyncStatus::Canceled:
-          handler->ec_ = boost::asio::error::operation_aborted;
+          handler->ec_ = asio::error::operation_aborted;
           break;
         case AsyncStatus::Started:
           return;
         case AsyncStatus::Completed:
         case AsyncStatus::Error:
         default:
-          handler->ec_ = boost::system::error_code(
+          handler->ec_ = asio::error_code(
               action->ErrorCode.Value,
-              boost::system::system_category());
+              asio::system_category());
           break;
         }
-        io_service_.post_deferred_completion(handler);
+        io_context_.post_deferred_completion(handler);
         if (--outstanding_ops_ == 0)
           promise_.set_value();
       });
 
-    io_service_.work_started();
+    io_context_.work_started();
     ++outstanding_ops_;
     action->Completed = on_completed;
   }
@@ -209,7 +208,7 @@ public:
         switch (status)
         {
         case AsyncStatus::Canceled:
-          handler->ec_ = boost::asio::error::operation_aborted;
+          handler->ec_ = asio::error::operation_aborted;
           break;
         case AsyncStatus::Started:
           return;
@@ -218,17 +217,17 @@ public:
           // Fall through.
         case AsyncStatus::Error:
         default:
-          handler->ec_ = boost::system::error_code(
+          handler->ec_ = asio::error_code(
               operation->ErrorCode.Value,
-              boost::system::system_category());
+              asio::system_category());
           break;
         }
-        io_service_.post_deferred_completion(handler);
+        io_context_.post_deferred_completion(handler);
         if (--outstanding_ops_ == 0)
           promise_.set_value();
       });
 
-    io_service_.work_started();
+    io_context_.work_started();
     ++outstanding_ops_;
     operation->Completed = on_completed;
   }
@@ -250,7 +249,7 @@ public:
           switch (status)
           {
           case AsyncStatus::Canceled:
-            handler->ec_ = boost::asio::error::operation_aborted;
+            handler->ec_ = asio::error::operation_aborted;
             break;
           case AsyncStatus::Started:
             return;
@@ -259,24 +258,24 @@ public:
             // Fall through.
           case AsyncStatus::Error:
           default:
-            handler->ec_ = boost::system::error_code(
+            handler->ec_ = asio::error_code(
                 operation->ErrorCode.Value,
-                boost::system::system_category());
+                asio::system_category());
             break;
           }
-          io_service_.post_deferred_completion(handler);
+          io_context_.post_deferred_completion(handler);
           if (--outstanding_ops_ == 0)
             promise_.set_value();
         });
 
-    io_service_.work_started();
+    io_context_.work_started();
     ++outstanding_ops_;
     operation->Completed = on_completed;
   }
 
 private:
-  // The io_service implementation used to post completed handlers.
-  io_service_impl& io_service_;
+  // The io_context implementation used to post completed handlers.
+  io_context_impl& io_context_;
 
   // Count of outstanding operations.
   atomic_count outstanding_ops_;
@@ -287,10 +286,9 @@ private:
 
 } // namespace detail
 } // namespace asio
-} // namespace boost
 
-#include <boost/asio/detail/pop_options.hpp>
+#include "asio/detail/pop_options.hpp"
 
-#endif // defined(BOOST_ASIO_WINDOWS_RUNTIME)
+#endif // defined(ASIO_WINDOWS_RUNTIME)
 
-#endif // BOOST_ASIO_DETAIL_WINRT_ASYNC_MANAGER_HPP
+#endif // ASIO_DETAIL_WINRT_ASYNC_MANAGER_HPP

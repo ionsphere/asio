@@ -2,40 +2,39 @@
 // local/basic_endpoint.hpp
 // ~~~~~~~~~~~~~~~~~~~~~~~~
 //
-// Copyright (c) 2003-2016 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+// Copyright (c) 2003-2018 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 // Derived from a public domain implementation written by Daniel Casimiro.
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
-#ifndef BOOST_ASIO_LOCAL_BASIC_ENDPOINT_HPP
-#define BOOST_ASIO_LOCAL_BASIC_ENDPOINT_HPP
+#ifndef ASIO_LOCAL_BASIC_ENDPOINT_HPP
+#define ASIO_LOCAL_BASIC_ENDPOINT_HPP
 
 #if defined(_MSC_VER) && (_MSC_VER >= 1200)
 # pragma once
 #endif // defined(_MSC_VER) && (_MSC_VER >= 1200)
 
-#include <boost/asio/detail/config.hpp>
+#include "asio/detail/config.hpp"
 
-#if defined(BOOST_ASIO_HAS_LOCAL_SOCKETS) \
+#if defined(ASIO_HAS_LOCAL_SOCKETS) \
   || defined(GENERATING_DOCUMENTATION)
 
-#include <boost/asio/local/detail/endpoint.hpp>
+#include "asio/local/detail/endpoint.hpp"
 
-#if !defined(BOOST_ASIO_NO_IOSTREAM)
+#if !defined(ASIO_NO_IOSTREAM)
 # include <iosfwd>
-#endif // !defined(BOOST_ASIO_NO_IOSTREAM)
+#endif // !defined(ASIO_NO_IOSTREAM)
 
-#include <boost/asio/detail/push_options.hpp>
+#include "asio/detail/push_options.hpp"
 
-namespace boost {
 namespace asio {
 namespace local {
 
 /// Describes an endpoint for a UNIX socket.
 /**
- * The boost::asio::local::basic_endpoint class template describes an endpoint
+ * The asio::local::basic_endpoint class template describes an endpoint
  * that may be associated with a particular UNIX socket.
  *
  * @par Thread Safety
@@ -57,7 +56,7 @@ public:
 #if defined(GENERATING_DOCUMENTATION)
   typedef implementation_defined data_type;
 #else
-  typedef boost::asio::detail::socket_addr_type data_type;
+  typedef asio::detail::socket_addr_type data_type;
 #endif
 
   /// Default constructor.
@@ -83,13 +82,13 @@ public:
   {
   }
 
-#if defined(BOOST_ASIO_HAS_MOVE)
+#if defined(ASIO_HAS_MOVE)
   /// Move constructor.
   basic_endpoint(basic_endpoint&& other)
     : impl_(other.impl_)
   {
   }
-#endif // defined(BOOST_ASIO_HAS_MOVE)
+#endif // defined(ASIO_HAS_MOVE)
 
   /// Assign from another endpoint.
   basic_endpoint& operator=(const basic_endpoint& other)
@@ -98,14 +97,14 @@ public:
     return *this;
   }
 
-#if defined(BOOST_ASIO_HAS_MOVE)
+#if defined(ASIO_HAS_MOVE)
   /// Move-assign from another endpoint.
   basic_endpoint& operator=(basic_endpoint&& other)
   {
     impl_ = other.impl_;
     return *this;
   }
-#endif // defined(BOOST_ASIO_HAS_MOVE)
+#endif // defined(ASIO_HAS_MOVE)
 
   /// The protocol associated with the endpoint.
   protocol_type protocol() const
@@ -205,7 +204,7 @@ public:
 
 private:
   // The underlying UNIX domain endpoint.
-  boost::asio::local::detail::endpoint impl_;
+  asio::local::detail::endpoint impl_;
 };
 
 /// Output an endpoint as a string.
@@ -218,7 +217,7 @@ private:
  *
  * @return The output stream.
  *
- * @relates boost::asio::local::basic_endpoint
+ * @relates asio::local::basic_endpoint
  */
 template <typename Elem, typename Traits, typename Protocol>
 std::basic_ostream<Elem, Traits>& operator<<(
@@ -231,11 +230,10 @@ std::basic_ostream<Elem, Traits>& operator<<(
 
 } // namespace local
 } // namespace asio
-} // namespace boost
 
-#include <boost/asio/detail/pop_options.hpp>
+#include "asio/detail/pop_options.hpp"
 
-#endif // defined(BOOST_ASIO_HAS_LOCAL_SOCKETS)
+#endif // defined(ASIO_HAS_LOCAL_SOCKETS)
        //   || defined(GENERATING_DOCUMENTATION)
 
-#endif // BOOST_ASIO_LOCAL_BASIC_ENDPOINT_HPP
+#endif // ASIO_LOCAL_BASIC_ENDPOINT_HPP

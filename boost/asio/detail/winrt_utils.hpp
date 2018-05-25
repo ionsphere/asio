@@ -2,39 +2,37 @@
 // detail/winrt_utils.hpp
 // ~~~~~~~~~~~~~~~~~~~~~~
 //
-// Copyright (c) 2003-2016 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+// Copyright (c) 2003-2018 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
-#ifndef BOOST_ASIO_DETAIL_WINRT_UTILS_HPP
-#define BOOST_ASIO_DETAIL_WINRT_UTILS_HPP
+#ifndef ASIO_DETAIL_WINRT_UTILS_HPP
+#define ASIO_DETAIL_WINRT_UTILS_HPP
 
 #if defined(_MSC_VER) && (_MSC_VER >= 1200)
 # pragma once
 #endif // defined(_MSC_VER) && (_MSC_VER >= 1200)
 
-#include <boost/asio/detail/config.hpp>
+#include "asio/detail/config.hpp"
 
-#if defined(BOOST_ASIO_WINDOWS_RUNTIME)
+#if defined(ASIO_WINDOWS_RUNTIME)
 
 #include <codecvt>
 #include <cstdlib>
 #include <future>
 #include <locale>
-#include <memory>
 #include <robuffer.h>
 #include <windows.storage.streams.h>
 #include <wrl/implements.h>
-#include <boost/asio/buffer.hpp>
-#include <boost/system/error_code.hpp>
-#include <boost/asio/detail/addressof.hpp>
-#include <boost/asio/detail/socket_ops.hpp>
+#include "asio/buffer.hpp"
+#include "asio/error_code.hpp"
+#include "asio/detail/memory.hpp"
+#include "asio/detail/socket_ops.hpp"
 
-#include <boost/asio/detail/push_options.hpp>
+#include "asio/detail/push_options.hpp"
 
-namespace boost {
 namespace asio {
 namespace detail {
 namespace winrt_utils {
@@ -84,14 +82,15 @@ inline Windows::Storage::Streams::IBuffer^ buffer_dup(
     const ConstBufferSequence& buffers)
 {
   using Microsoft::WRL::ComPtr;
-  std::size_t size = boost::asio::buffer_size(buffers);
+  using asio::buffer_size;
+  std::size_t size = buffer_size(buffers);
   auto b = ref new Windows::Storage::Streams::Buffer(size);
   ComPtr<IInspectable> insp = reinterpret_cast<IInspectable*>(b);
   ComPtr<Windows::Storage::Streams::IBufferByteAccess> bacc;
   insp.As(&bacc);
   byte* bytes = nullptr;
   bacc->Buffer(&bytes);
-  boost::asio::buffer_copy(boost::asio::buffer(bytes, size), buffers);
+  asio::buffer_copy(asio::buffer(bytes, size), buffers);
   b->Length = size;
   return b;
 }
@@ -99,10 +98,9 @@ inline Windows::Storage::Streams::IBuffer^ buffer_dup(
 } // namespace winrt_utils
 } // namespace detail
 } // namespace asio
-} // namespace boost
 
-#include <boost/asio/detail/pop_options.hpp>
+#include "asio/detail/pop_options.hpp"
 
-#endif // defined(BOOST_ASIO_WINDOWS_RUNTIME)
+#endif // defined(ASIO_WINDOWS_RUNTIME)
 
-#endif // BOOST_ASIO_DETAIL_WINRT_UTILS_HPP
+#endif // ASIO_DETAIL_WINRT_UTILS_HPP

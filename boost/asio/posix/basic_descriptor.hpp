@@ -2,32 +2,33 @@
 // posix/basic_descriptor.hpp
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~
 //
-// Copyright (c) 2003-2016 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+// Copyright (c) 2003-2018 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
-#ifndef BOOST_ASIO_POSIX_BASIC_DESCRIPTOR_HPP
-#define BOOST_ASIO_POSIX_BASIC_DESCRIPTOR_HPP
+#ifndef ASIO_POSIX_BASIC_DESCRIPTOR_HPP
+#define ASIO_POSIX_BASIC_DESCRIPTOR_HPP
 
 #if defined(_MSC_VER) && (_MSC_VER >= 1200)
 # pragma once
 #endif // defined(_MSC_VER) && (_MSC_VER >= 1200)
 
-#include <boost/asio/detail/config.hpp>
+#include "asio/detail/config.hpp"
 
-#if defined(BOOST_ASIO_HAS_POSIX_STREAM_DESCRIPTOR) \
+#if defined(ASIO_ENABLE_OLD_SERVICES)
+
+#if defined(ASIO_HAS_POSIX_STREAM_DESCRIPTOR) \
   || defined(GENERATING_DOCUMENTATION)
 
-#include <boost/asio/basic_io_object.hpp>
-#include <boost/asio/detail/throw_error.hpp>
-#include <boost/asio/error.hpp>
-#include <boost/asio/posix/descriptor_base.hpp>
+#include "asio/basic_io_object.hpp"
+#include "asio/detail/throw_error.hpp"
+#include "asio/error.hpp"
+#include "asio/posix/descriptor_base.hpp"
 
-#include <boost/asio/detail/push_options.hpp>
+#include "asio/detail/push_options.hpp"
 
-namespace boost {
 namespace asio {
 namespace posix {
 
@@ -46,10 +47,6 @@ class basic_descriptor
     public descriptor_base
 {
 public:
-  /// (Deprecated: Use native_handle_type.) The native representation of a
-  /// descriptor.
-  typedef typename DescriptorService::native_handle_type native_type;
-
   /// The native representation of a descriptor.
   typedef typename DescriptorService::native_handle_type native_handle_type;
 
@@ -60,12 +57,12 @@ public:
   /**
    * This constructor creates a descriptor without opening it.
    *
-   * @param io_service The io_service object that the descriptor will use to
+   * @param io_context The io_context object that the descriptor will use to
    * dispatch handlers for any asynchronous operations performed on the
    * descriptor.
    */
-  explicit basic_descriptor(boost::asio::io_service& io_service)
-    : basic_io_object<DescriptorService>(io_service)
+  explicit basic_descriptor(asio::io_context& io_context)
+    : basic_io_object<DescriptorService>(io_context)
   {
   }
 
@@ -74,25 +71,25 @@ public:
    * This constructor creates a descriptor object to hold an existing native
    * descriptor.
    *
-   * @param io_service The io_service object that the descriptor will use to
+   * @param io_context The io_context object that the descriptor will use to
    * dispatch handlers for any asynchronous operations performed on the
    * descriptor.
    *
    * @param native_descriptor A native descriptor.
    *
-   * @throws boost::system::system_error Thrown on failure.
+   * @throws asio::system_error Thrown on failure.
    */
-  basic_descriptor(boost::asio::io_service& io_service,
+  basic_descriptor(asio::io_context& io_context,
       const native_handle_type& native_descriptor)
-    : basic_io_object<DescriptorService>(io_service)
+    : basic_io_object<DescriptorService>(io_context)
   {
-    boost::system::error_code ec;
+    asio::error_code ec;
     this->get_service().assign(this->get_implementation(),
         native_descriptor, ec);
-    boost::asio::detail::throw_error(ec, "assign");
+    asio::detail::throw_error(ec, "assign");
   }
 
-#if defined(BOOST_ASIO_HAS_MOVE) || defined(GENERATING_DOCUMENTATION)
+#if defined(ASIO_HAS_MOVE) || defined(GENERATING_DOCUMENTATION)
   /// Move-construct a basic_descriptor from another.
   /**
    * This constructor moves a descriptor from one object to another.
@@ -101,11 +98,11 @@ public:
    * occur.
    *
    * @note Following the move, the moved-from object is in the same state as if
-   * constructed using the @c basic_descriptor(io_service&) constructor.
+   * constructed using the @c basic_descriptor(io_context&) constructor.
    */
   basic_descriptor(basic_descriptor&& other)
     : basic_io_object<DescriptorService>(
-        BOOST_ASIO_MOVE_CAST(basic_descriptor)(other))
+        ASIO_MOVE_CAST(basic_descriptor)(other))
   {
   }
 
@@ -117,15 +114,15 @@ public:
    * occur.
    *
    * @note Following the move, the moved-from object is in the same state as if
-   * constructed using the @c basic_descriptor(io_service&) constructor.
+   * constructed using the @c basic_descriptor(io_context&) constructor.
    */
   basic_descriptor& operator=(basic_descriptor&& other)
   {
     basic_io_object<DescriptorService>::operator=(
-        BOOST_ASIO_MOVE_CAST(basic_descriptor)(other));
+        ASIO_MOVE_CAST(basic_descriptor)(other));
     return *this;
   }
-#endif // defined(BOOST_ASIO_HAS_MOVE) || defined(GENERATING_DOCUMENTATION)
+#endif // defined(ASIO_HAS_MOVE) || defined(GENERATING_DOCUMENTATION)
 
   /// Get a reference to the lowest layer.
   /**
@@ -161,14 +158,14 @@ public:
    *
    * @param native_descriptor A native descriptor.
    *
-   * @throws boost::system::system_error Thrown on failure.
+   * @throws asio::system_error Thrown on failure.
    */
   void assign(const native_handle_type& native_descriptor)
   {
-    boost::system::error_code ec;
+    asio::error_code ec;
     this->get_service().assign(this->get_implementation(),
         native_descriptor, ec);
-    boost::asio::detail::throw_error(ec, "assign");
+    asio::detail::throw_error(ec, "assign");
   }
 
   /// Assign an existing native descriptor to the descriptor.
@@ -179,59 +176,49 @@ public:
    *
    * @param ec Set to indicate what error occurred, if any.
    */
-  boost::system::error_code assign(const native_handle_type& native_descriptor,
-      boost::system::error_code& ec)
+  ASIO_SYNC_OP_VOID assign(const native_handle_type& native_descriptor,
+      asio::error_code& ec)
   {
-    return this->get_service().assign(
+    this->get_service().assign(
         this->get_implementation(), native_descriptor, ec);
+    ASIO_SYNC_OP_VOID_RETURN(ec);
   }
 
   /// Determine whether the descriptor is open.
   bool is_open() const
   {
-    return this->get_service().is_open(this->implementation);
+    return this->get_service().is_open(this->get_implementation());
   }
 
   /// Close the descriptor.
   /**
    * This function is used to close the descriptor. Any asynchronous read or
    * write operations will be cancelled immediately, and will complete with the
-   * boost::asio::error::operation_aborted error.
+   * asio::error::operation_aborted error.
    *
-   * @throws boost::system::system_error Thrown on failure. Note that, even if
+   * @throws asio::system_error Thrown on failure. Note that, even if
    * the function indicates an error, the underlying descriptor is closed.
    */
   void close()
   {
-    boost::system::error_code ec;
+    asio::error_code ec;
     this->get_service().close(this->get_implementation(), ec);
-    boost::asio::detail::throw_error(ec, "close");
+    asio::detail::throw_error(ec, "close");
   }
 
   /// Close the descriptor.
   /**
    * This function is used to close the descriptor. Any asynchronous read or
    * write operations will be cancelled immediately, and will complete with the
-   * boost::asio::error::operation_aborted error.
+   * asio::error::operation_aborted error.
    *
    * @param ec Set to indicate what error occurred, if any. Note that, even if
    * the function indicates an error, the underlying descriptor is closed.
    */
-  boost::system::error_code close(boost::system::error_code& ec)
+  ASIO_SYNC_OP_VOID close(asio::error_code& ec)
   {
-    return this->get_service().close(this->get_implementation(), ec);
-  }
-
-  /// (Deprecated: Use native_handle().) Get the native descriptor
-  /// representation.
-  /**
-   * This function may be used to obtain the underlying representation of the
-   * descriptor. This is intended to allow access to native descriptor
-   * functionality that is not otherwise provided.
-   */
-  native_type native()
-  {
-    return this->get_service().native_handle(this->implementation);
+    this->get_service().close(this->get_implementation(), ec);
+    ASIO_SYNC_OP_VOID_RETURN(ec);
   }
 
   /// Get the native descriptor representation.
@@ -242,7 +229,7 @@ public:
    */
   native_handle_type native_handle()
   {
-    return this->get_service().native_handle(this->implementation);
+    return this->get_service().native_handle(this->get_implementation());
   }
 
   /// Release ownership of the native descriptor implementation.
@@ -253,39 +240,40 @@ public:
    *
    * All outstanding asynchronous read or write operations will finish
    * immediately, and the handlers for cancelled operations will be passed the
-   * boost::asio::error::operation_aborted error.
+   * asio::error::operation_aborted error.
    */
   native_handle_type release()
   {
-    return this->get_service().release(this->implementation);
+    return this->get_service().release(this->get_implementation());
   }
 
   /// Cancel all asynchronous operations associated with the descriptor.
   /**
    * This function causes all outstanding asynchronous read or write operations
    * to finish immediately, and the handlers for cancelled operations will be
-   * passed the boost::asio::error::operation_aborted error.
+   * passed the asio::error::operation_aborted error.
    *
-   * @throws boost::system::system_error Thrown on failure.
+   * @throws asio::system_error Thrown on failure.
    */
   void cancel()
   {
-    boost::system::error_code ec;
+    asio::error_code ec;
     this->get_service().cancel(this->get_implementation(), ec);
-    boost::asio::detail::throw_error(ec, "cancel");
+    asio::detail::throw_error(ec, "cancel");
   }
 
   /// Cancel all asynchronous operations associated with the descriptor.
   /**
    * This function causes all outstanding asynchronous read or write operations
    * to finish immediately, and the handlers for cancelled operations will be
-   * passed the boost::asio::error::operation_aborted error.
+   * passed the asio::error::operation_aborted error.
    *
    * @param ec Set to indicate what error occurred, if any.
    */
-  boost::system::error_code cancel(boost::system::error_code& ec)
+  ASIO_SYNC_OP_VOID cancel(asio::error_code& ec)
   {
-    return this->get_service().cancel(this->get_implementation(), ec);
+    this->get_service().cancel(this->get_implementation(), ec);
+    ASIO_SYNC_OP_VOID_RETURN(ec);
   }
 
   /// Perform an IO control command on the descriptor.
@@ -294,18 +282,18 @@ public:
    *
    * @param command The IO control command to be performed on the descriptor.
    *
-   * @throws boost::system::system_error Thrown on failure.
+   * @throws asio::system_error Thrown on failure.
    *
    * @sa IoControlCommand @n
-   * boost::asio::posix::descriptor_base::bytes_readable @n
-   * boost::asio::posix::descriptor_base::non_blocking_io
+   * asio::posix::descriptor_base::bytes_readable @n
+   * asio::posix::descriptor_base::non_blocking_io
    *
    * @par Example
    * Getting the number of bytes ready to read:
    * @code
-   * boost::asio::posix::stream_descriptor descriptor(io_service);
+   * asio::posix::stream_descriptor descriptor(io_context);
    * ...
-   * boost::asio::posix::stream_descriptor::bytes_readable command;
+   * asio::posix::stream_descriptor::bytes_readable command;
    * descriptor.io_control(command);
    * std::size_t bytes_readable = command.get();
    * @endcode
@@ -313,9 +301,9 @@ public:
   template <typename IoControlCommand>
   void io_control(IoControlCommand& command)
   {
-    boost::system::error_code ec;
+    asio::error_code ec;
     this->get_service().io_control(this->get_implementation(), command, ec);
-    boost::asio::detail::throw_error(ec, "io_control");
+    asio::detail::throw_error(ec, "io_control");
   }
 
   /// Perform an IO control command on the descriptor.
@@ -327,16 +315,16 @@ public:
    * @param ec Set to indicate what error occurred, if any.
    *
    * @sa IoControlCommand @n
-   * boost::asio::posix::descriptor_base::bytes_readable @n
-   * boost::asio::posix::descriptor_base::non_blocking_io
+   * asio::posix::descriptor_base::bytes_readable @n
+   * asio::posix::descriptor_base::non_blocking_io
    *
    * @par Example
    * Getting the number of bytes ready to read:
    * @code
-   * boost::asio::posix::stream_descriptor descriptor(io_service);
+   * asio::posix::stream_descriptor descriptor(io_context);
    * ...
-   * boost::asio::posix::stream_descriptor::bytes_readable command;
-   * boost::system::error_code ec;
+   * asio::posix::stream_descriptor::bytes_readable command;
+   * asio::error_code ec;
    * descriptor.io_control(command, ec);
    * if (ec)
    * {
@@ -346,53 +334,53 @@ public:
    * @endcode
    */
   template <typename IoControlCommand>
-  boost::system::error_code io_control(IoControlCommand& command,
-      boost::system::error_code& ec)
+  ASIO_SYNC_OP_VOID io_control(IoControlCommand& command,
+      asio::error_code& ec)
   {
-    return this->get_service().io_control(
-        this->get_implementation(), command, ec);
+    this->get_service().io_control(this->get_implementation(), command, ec);
+    ASIO_SYNC_OP_VOID_RETURN(ec);
   }
 
   /// Gets the non-blocking mode of the descriptor.
   /**
    * @returns @c true if the descriptor's synchronous operations will fail with
-   * boost::asio::error::would_block if they are unable to perform the requested
+   * asio::error::would_block if they are unable to perform the requested
    * operation immediately. If @c false, synchronous operations will block
    * until complete.
    *
    * @note The non-blocking mode has no effect on the behaviour of asynchronous
    * operations. Asynchronous operations will never fail with the error
-   * boost::asio::error::would_block.
+   * asio::error::would_block.
    */
   bool non_blocking() const
   {
-    return this->get_service().non_blocking(this->implementation);
+    return this->get_service().non_blocking(this->get_implementation());
   }
 
   /// Sets the non-blocking mode of the descriptor.
   /**
    * @param mode If @c true, the descriptor's synchronous operations will fail
-   * with boost::asio::error::would_block if they are unable to perform the
+   * with asio::error::would_block if they are unable to perform the
    * requested operation immediately. If @c false, synchronous operations will
    * block until complete.
    *
-   * @throws boost::system::system_error Thrown on failure.
+   * @throws asio::system_error Thrown on failure.
    *
    * @note The non-blocking mode has no effect on the behaviour of asynchronous
    * operations. Asynchronous operations will never fail with the error
-   * boost::asio::error::would_block.
+   * asio::error::would_block.
    */
   void non_blocking(bool mode)
   {
-    boost::system::error_code ec;
+    asio::error_code ec;
     this->get_service().non_blocking(this->get_implementation(), mode, ec);
-    boost::asio::detail::throw_error(ec, "non_blocking");
+    asio::detail::throw_error(ec, "non_blocking");
   }
 
   /// Sets the non-blocking mode of the descriptor.
   /**
    * @param mode If @c true, the descriptor's synchronous operations will fail
-   * with boost::asio::error::would_block if they are unable to perform the
+   * with asio::error::would_block if they are unable to perform the
    * requested operation immediately. If @c false, synchronous operations will
    * block until complete.
    *
@@ -400,13 +388,13 @@ public:
    *
    * @note The non-blocking mode has no effect on the behaviour of asynchronous
    * operations. Asynchronous operations will never fail with the error
-   * boost::asio::error::would_block.
+   * asio::error::would_block.
    */
-  boost::system::error_code non_blocking(
-      bool mode, boost::system::error_code& ec)
+  ASIO_SYNC_OP_VOID non_blocking(
+      bool mode, asio::error_code& ec)
   {
-    return this->get_service().non_blocking(
-        this->get_implementation(), mode, ec);
+    this->get_service().non_blocking(this->get_implementation(), mode, ec);
+    ASIO_SYNC_OP_VOID_RETURN(ec);
   }
 
   /// Gets the non-blocking mode of the native descriptor implementation.
@@ -416,7 +404,7 @@ public:
    * descriptor object's synchronous operations.
    *
    * @returns @c true if the underlying descriptor is in non-blocking mode and
-   * direct system calls may fail with boost::asio::error::would_block (or the
+   * direct system calls may fail with asio::error::would_block (or the
    * equivalent system error).
    *
    * @note The current non-blocking mode is cached by the descriptor object.
@@ -425,7 +413,8 @@ public:
    */
   bool native_non_blocking() const
   {
-    return this->get_service().native_non_blocking(this->implementation);
+    return this->get_service().native_non_blocking(
+        this->get_implementation());
   }
 
   /// Sets the non-blocking mode of the native descriptor implementation.
@@ -435,20 +424,20 @@ public:
    * object's synchronous operations.
    *
    * @param mode If @c true, the underlying descriptor is put into non-blocking
-   * mode and direct system calls may fail with boost::asio::error::would_block
+   * mode and direct system calls may fail with asio::error::would_block
    * (or the equivalent system error).
    *
-   * @throws boost::system::system_error Thrown on failure. If the @c mode is
+   * @throws asio::system_error Thrown on failure. If the @c mode is
    * @c false, but the current value of @c non_blocking() is @c true, this
-   * function fails with boost::asio::error::invalid_argument, as the
+   * function fails with asio::error::invalid_argument, as the
    * combination does not make sense.
    */
   void native_non_blocking(bool mode)
   {
-    boost::system::error_code ec;
+    asio::error_code ec;
     this->get_service().native_non_blocking(
         this->get_implementation(), mode, ec);
-    boost::asio::detail::throw_error(ec, "native_non_blocking");
+    asio::detail::throw_error(ec, "native_non_blocking");
   }
 
   /// Sets the non-blocking mode of the native descriptor implementation.
@@ -458,19 +447,119 @@ public:
    * object's synchronous operations.
    *
    * @param mode If @c true, the underlying descriptor is put into non-blocking
-   * mode and direct system calls may fail with boost::asio::error::would_block
+   * mode and direct system calls may fail with asio::error::would_block
    * (or the equivalent system error).
    *
    * @param ec Set to indicate what error occurred, if any. If the @c mode is
    * @c false, but the current value of @c non_blocking() is @c true, this
-   * function fails with boost::asio::error::invalid_argument, as the
+   * function fails with asio::error::invalid_argument, as the
    * combination does not make sense.
    */
-  boost::system::error_code native_non_blocking(
-      bool mode, boost::system::error_code& ec)
+  ASIO_SYNC_OP_VOID native_non_blocking(
+      bool mode, asio::error_code& ec)
   {
-    return this->get_service().native_non_blocking(
+    this->get_service().native_non_blocking(
         this->get_implementation(), mode, ec);
+    ASIO_SYNC_OP_VOID_RETURN(ec);
+  }
+
+  /// Wait for the descriptor to become ready to read, ready to write, or to
+  /// have pending error conditions.
+  /**
+   * This function is used to perform a blocking wait for a descriptor to enter
+   * a ready to read, write or error condition state.
+   *
+   * @param w Specifies the desired descriptor state.
+   *
+   * @par Example
+   * Waiting for a descriptor to become readable.
+   * @code
+   * asio::posix::stream_descriptor descriptor(io_context);
+   * ...
+   * descriptor.wait(asio::posix::stream_descriptor::wait_read);
+   * @endcode
+   */
+  void wait(wait_type w)
+  {
+    asio::error_code ec;
+    this->get_service().wait(this->get_implementation(), w, ec);
+    asio::detail::throw_error(ec, "wait");
+  }
+
+  /// Wait for the descriptor to become ready to read, ready to write, or to
+  /// have pending error conditions.
+  /**
+   * This function is used to perform a blocking wait for a descriptor to enter
+   * a ready to read, write or error condition state.
+   *
+   * @param w Specifies the desired descriptor state.
+   *
+   * @param ec Set to indicate what error occurred, if any.
+   *
+   * @par Example
+   * Waiting for a descriptor to become readable.
+   * @code
+   * asio::posix::stream_descriptor descriptor(io_context);
+   * ...
+   * asio::error_code ec;
+   * descriptor.wait(asio::posix::stream_descriptor::wait_read, ec);
+   * @endcode
+   */
+  ASIO_SYNC_OP_VOID wait(wait_type w, asio::error_code& ec)
+  {
+    this->get_service().wait(this->get_implementation(), w, ec);
+    ASIO_SYNC_OP_VOID_RETURN(ec);
+  }
+
+  /// Asynchronously wait for the descriptor to become ready to read, ready to
+  /// write, or to have pending error conditions.
+  /**
+   * This function is used to perform an asynchronous wait for a descriptor to
+   * enter a ready to read, write or error condition state.
+   *
+   * @param w Specifies the desired descriptor state.
+   *
+   * @param handler The handler to be called when the wait operation completes.
+   * Copies will be made of the handler as required. The function signature of
+   * the handler must be:
+   * @code void handler(
+   *   const asio::error_code& error // Result of operation
+   * ); @endcode
+   * Regardless of whether the asynchronous operation completes immediately or
+   * not, the handler will not be invoked from within this function. Invocation
+   * of the handler will be performed in a manner equivalent to using
+   * asio::io_context::post().
+   *
+   * @par Example
+   * @code
+   * void wait_handler(const asio::error_code& error)
+   * {
+   *   if (!error)
+   *   {
+   *     // Wait succeeded.
+   *   }
+   * }
+   *
+   * ...
+   *
+   * asio::posix::stream_descriptor descriptor(io_context);
+   * ...
+   * descriptor.async_wait(
+   *     asio::posix::stream_descriptor::wait_read,
+   *     wait_handler);
+   * @endcode
+   */
+  template <typename WaitHandler>
+  ASIO_INITFN_RESULT_TYPE(WaitHandler,
+      void (asio::error_code))
+  async_wait(wait_type w, ASIO_MOVE_ARG(WaitHandler) handler)
+  {
+    // If you get an error on the following line it means that your handler does
+    // not meet the documented type requirements for a WaitHandler.
+    ASIO_WAIT_HANDLER_CHECK(WaitHandler, handler) type_check;
+
+    return this->get_service().async_wait(this->get_implementation(),
+        w, ASIO_MOVE_CAST(WaitHandler)(handler));
   }
 
 protected:
@@ -482,11 +571,12 @@ protected:
 
 } // namespace posix
 } // namespace asio
-} // namespace boost
 
-#include <boost/asio/detail/pop_options.hpp>
+#include "asio/detail/pop_options.hpp"
 
-#endif // defined(BOOST_ASIO_HAS_POSIX_STREAM_DESCRIPTOR)
+#endif // defined(ASIO_HAS_POSIX_STREAM_DESCRIPTOR)
        //   || defined(GENERATING_DOCUMENTATION)
 
-#endif // BOOST_ASIO_POSIX_BASIC_DESCRIPTOR_HPP
+#endif // defined(ASIO_ENABLE_OLD_SERVICES)
+
+#endif // ASIO_POSIX_BASIC_DESCRIPTOR_HPP

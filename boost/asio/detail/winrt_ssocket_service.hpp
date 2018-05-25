@@ -2,38 +2,38 @@
 // detail/winrt_ssocket_service.hpp
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //
-// Copyright (c) 2003-2016 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+// Copyright (c) 2003-2018 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
-#ifndef BOOST_ASIO_DETAIL_WINRT_SSOCKET_SERVICE_HPP
-#define BOOST_ASIO_DETAIL_WINRT_SSOCKET_SERVICE_HPP
+#ifndef ASIO_DETAIL_WINRT_SSOCKET_SERVICE_HPP
+#define ASIO_DETAIL_WINRT_SSOCKET_SERVICE_HPP
 
 #if defined(_MSC_VER) && (_MSC_VER >= 1200)
 # pragma once
 #endif // defined(_MSC_VER) && (_MSC_VER >= 1200)
 
-#include <boost/asio/detail/config.hpp>
+#include "asio/detail/config.hpp"
 
-#if defined(BOOST_ASIO_WINDOWS_RUNTIME)
+#if defined(ASIO_WINDOWS_RUNTIME)
 
-#include <boost/asio/error.hpp>
-#include <boost/asio/io_service.hpp>
-#include <boost/asio/detail/addressof.hpp>
-#include <boost/asio/detail/winrt_socket_connect_op.hpp>
-#include <boost/asio/detail/winrt_ssocket_service_base.hpp>
-#include <boost/asio/detail/winrt_utils.hpp>
+#include "asio/error.hpp"
+#include "asio/io_context.hpp"
+#include "asio/detail/memory.hpp"
+#include "asio/detail/winrt_socket_connect_op.hpp"
+#include "asio/detail/winrt_ssocket_service_base.hpp"
+#include "asio/detail/winrt_utils.hpp"
 
-#include <boost/asio/detail/push_options.hpp>
+#include "asio/detail/push_options.hpp"
 
-namespace boost {
 namespace asio {
 namespace detail {
 
 template <typename Protocol>
 class winrt_ssocket_service :
+  public service_base<winrt_ssocket_service<Protocol> >,
   public winrt_ssocket_service_base
 {
 public:
@@ -61,9 +61,16 @@ public:
   };
 
   // Constructor.
-  winrt_ssocket_service(boost::asio::io_service& io_service)
-    : winrt_ssocket_service_base(io_service)
+  winrt_ssocket_service(asio::io_context& io_context)
+    : service_base<winrt_ssocket_service<Protocol> >(io_context),
+      winrt_ssocket_service_base(io_context)
   {
+  }
+
+  // Destroy all user-defined handler objects owned by the service.
+  void shutdown()
+  {
+    this->base_shutdown();
   }
 
   // Move-construct a new socket implementation.
@@ -90,6 +97,7 @@ public:
   // Move-construct a new socket implementation from another protocol type.
   template <typename Protocol1>
   void converting_move_construct(implementation_type& impl,
+      winrt_ssocket_service<Protocol1>&,
       typename winrt_ssocket_service<
         Protocol1>::implementation_type& other_impl)
   {
@@ -100,12 +108,12 @@ public:
   }
 
   // Open a new socket implementation.
-  boost::system::error_code open(implementation_type& impl,
-      const protocol_type& protocol, boost::system::error_code& ec)
+  asio::error_code open(implementation_type& impl,
+      const protocol_type& protocol, asio::error_code& ec)
   {
     if (is_open(impl))
     {
-      ec = boost::asio::error::already_open;
+      ec = asio::error::already_open;
       return ec;
     }
 
@@ -113,46 +121,46 @@ public:
     {
       impl.socket_ = ref new Windows::Networking::Sockets::StreamSocket;
       impl.protocol_ = protocol;
-      ec = boost::system::error_code();
+      ec = asio::error_code();
     }
     catch (Platform::Exception^ e)
     {
-      ec = boost::system::error_code(e->HResult,
-            boost::system::system_category());
+      ec = asio::error_code(e->HResult,
+            asio::system_category());
     }
 
     return ec;
   }
 
   // Assign a native socket to a socket implementation.
-  boost::system::error_code assign(implementation_type& impl,
+  asio::error_code assign(implementation_type& impl,
       const protocol_type& protocol, const native_handle_type& native_socket,
-      boost::system::error_code& ec)
+      asio::error_code& ec)
   {
     if (is_open(impl))
     {
-      ec = boost::asio::error::already_open;
+      ec = asio::error::already_open;
       return ec;
     }
 
     impl.socket_ = native_socket;
     impl.protocol_ = protocol;
-    ec = boost::system::error_code();
+    ec = asio::error_code();
 
     return ec;
   }
 
   // Bind the socket to the specified local endpoint.
-  boost::system::error_code bind(implementation_type&,
-      const endpoint_type&, boost::system::error_code& ec)
+  asio::error_code bind(implementation_type&,
+      const endpoint_type&, asio::error_code& ec)
   {
-    ec = boost::asio::error::operation_not_supported;
+    ec = asio::error::operation_not_supported;
     return ec;
   }
 
   // Get the local endpoint.
   endpoint_type local_endpoint(const implementation_type& impl,
-      boost::system::error_code& ec) const
+      asio::error_code& ec) const
   {
     endpoint_type endpoint;
     endpoint.resize(do_get_endpoint(impl, true,
@@ -162,7 +170,7 @@ public:
 
   // Get the remote endpoint.
   endpoint_type remote_endpoint(const implementation_type& impl,
-      boost::system::error_code& ec) const
+      asio::error_code& ec) const
   {
     endpoint_type endpoint;
     endpoint.resize(do_get_endpoint(impl, false,
@@ -172,8 +180,8 @@ public:
 
   // Set a socket option.
   template <typename Option>
-  boost::system::error_code set_option(implementation_type& impl,
-      const Option& option, boost::system::error_code& ec)
+  asio::error_code set_option(implementation_type& impl,
+      const Option& option, asio::error_code& ec)
   {
     return do_set_option(impl, option.level(impl.protocol_),
         option.name(impl.protocol_), option.data(impl.protocol_),
@@ -182,8 +190,8 @@ public:
 
   // Get a socket option.
   template <typename Option>
-  boost::system::error_code get_option(const implementation_type& impl,
-      Option& option, boost::system::error_code& ec) const
+  asio::error_code get_option(const implementation_type& impl,
+      Option& option, asio::error_code& ec) const
   {
     std::size_t size = option.size(impl.protocol_);
     do_get_option(impl, option.level(impl.protocol_),
@@ -195,8 +203,8 @@ public:
   }
 
   // Connect the socket to the specified endpoint.
-  boost::system::error_code connect(implementation_type& impl,
-      const endpoint_type& peer_endpoint, boost::system::error_code& ec)
+  asio::error_code connect(implementation_type& impl,
+      const endpoint_type& peer_endpoint, asio::error_code& ec)
   {
     return do_connect(impl, peer_endpoint.data(), ec);
   }
@@ -207,16 +215,16 @@ public:
       const endpoint_type& peer_endpoint, Handler& handler)
   {
     bool is_continuation =
-      boost_asio_handler_cont_helpers::is_continuation(handler);
+      asio_handler_cont_helpers::is_continuation(handler);
 
     // Allocate and construct an operation to wrap the handler.
     typedef winrt_socket_connect_op<Handler> op;
-    typename op::ptr p = { boost::asio::detail::addressof(handler),
-      boost_asio_handler_alloc_helpers::allocate(
-        sizeof(op), handler), 0 };
+    typename op::ptr p = { asio::detail::addressof(handler),
+      op::ptr::allocate(handler), 0 };
     p.p = new (p.v) op(handler);
 
-    BOOST_ASIO_HANDLER_CREATION((p.p, "socket", &impl, "async_connect"));
+    ASIO_HANDLER_CREATION((io_context_.context(),
+          *p.p, "socket", &impl, 0, "async_connect"));
 
     start_connect_op(impl, peer_endpoint.data(), p.p, is_continuation);
     p.v = p.p = 0;
@@ -225,10 +233,9 @@ public:
 
 } // namespace detail
 } // namespace asio
-} // namespace boost
 
-#include <boost/asio/detail/pop_options.hpp>
+#include "asio/detail/pop_options.hpp"
 
-#endif // defined(BOOST_ASIO_WINDOWS_RUNTIME)
+#endif // defined(ASIO_WINDOWS_RUNTIME)
 
-#endif // BOOST_ASIO_DETAIL_WINRT_SSOCKET_SERVICE_HPP
+#endif // ASIO_DETAIL_WINRT_SSOCKET_SERVICE_HPP

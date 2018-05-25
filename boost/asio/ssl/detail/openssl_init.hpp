@@ -2,28 +2,27 @@
 // ssl/detail/openssl_init.hpp
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //
-// Copyright (c) 2003-2016 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+// Copyright (c) 2003-2018 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
-#ifndef BOOST_ASIO_SSL_DETAIL_OPENSSL_INIT_HPP
-#define BOOST_ASIO_SSL_DETAIL_OPENSSL_INIT_HPP
+#ifndef ASIO_SSL_DETAIL_OPENSSL_INIT_HPP
+#define ASIO_SSL_DETAIL_OPENSSL_INIT_HPP
 
 #if defined(_MSC_VER) && (_MSC_VER >= 1200)
 # pragma once
 #endif // defined(_MSC_VER) && (_MSC_VER >= 1200)
 
-#include <boost/asio/detail/config.hpp>
+#include "asio/detail/config.hpp"
 #include <cstring>
-#include <boost/asio/detail/noncopyable.hpp>
-#include <boost/asio/detail/shared_ptr.hpp>
-#include <boost/asio/ssl/detail/openssl_types.hpp>
+#include "asio/detail/memory.hpp"
+#include "asio/detail/noncopyable.hpp"
+#include "asio/ssl/detail/openssl_types.hpp"
 
-#include <boost/asio/detail/push_options.hpp>
+#include "asio/detail/push_options.hpp"
 
-namespace boost {
 namespace asio {
 namespace ssl {
 namespace detail {
@@ -40,13 +39,13 @@ protected:
   // main, and therefore before any other threads can get started. The do_init
   // instance must be static in this function to ensure that it gets
   // initialised before any other global objects try to use it.
-  BOOST_ASIO_DECL static boost::asio::detail::shared_ptr<do_init> instance();
+  ASIO_DECL static asio::detail::shared_ptr<do_init> instance();
 
 #if !defined(SSL_OP_NO_COMPRESSION) \
   && (OPENSSL_VERSION_NUMBER >= 0x00908000L)
   // Get an empty stack of compression methods, to be used when disabling
   // compression.
-  BOOST_ASIO_DECL static STACK_OF(SSL_COMP)* get_null_compression_methods();
+  ASIO_DECL static STACK_OF(SSL_COMP)* get_null_compression_methods();
 #endif // !defined(SSL_OP_NO_COMPRESSION)
        // && (OPENSSL_VERSION_NUMBER >= 0x00908000L)
 };
@@ -83,7 +82,7 @@ private:
 
   // Reference to singleton do_init object to ensure that openssl does not get
   // cleaned up until the last user has finished with it.
-  boost::asio::detail::shared_ptr<do_init> ref_;
+  asio::detail::shared_ptr<do_init> ref_;
 };
 
 template <bool Do_Init>
@@ -92,12 +91,11 @@ openssl_init<Do_Init> openssl_init<Do_Init>::instance_;
 } // namespace detail
 } // namespace ssl
 } // namespace asio
-} // namespace boost
 
-#include <boost/asio/detail/pop_options.hpp>
+#include "asio/detail/pop_options.hpp"
 
-#if defined(BOOST_ASIO_HEADER_ONLY)
-# include <boost/asio/ssl/detail/impl/openssl_init.ipp>
-#endif // defined(BOOST_ASIO_HEADER_ONLY)
+#if defined(ASIO_HEADER_ONLY)
+# include "asio/ssl/detail/impl/openssl_init.ipp"
+#endif // defined(ASIO_HEADER_ONLY)
 
-#endif // BOOST_ASIO_SSL_DETAIL_OPENSSL_INIT_HPP
+#endif // ASIO_SSL_DETAIL_OPENSSL_INIT_HPP

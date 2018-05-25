@@ -2,29 +2,28 @@
 // detail/reactor_op_queue.hpp
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //
-// Copyright (c) 2003-2016 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+// Copyright (c) 2003-2018 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
-#ifndef BOOST_ASIO_DETAIL_REACTOR_OP_QUEUE_HPP
-#define BOOST_ASIO_DETAIL_REACTOR_OP_QUEUE_HPP
+#ifndef ASIO_DETAIL_REACTOR_OP_QUEUE_HPP
+#define ASIO_DETAIL_REACTOR_OP_QUEUE_HPP
 
 #if defined(_MSC_VER) && (_MSC_VER >= 1200)
 # pragma once
 #endif // defined(_MSC_VER) && (_MSC_VER >= 1200)
 
-#include <boost/asio/detail/config.hpp>
-#include <boost/asio/detail/hash_map.hpp>
-#include <boost/asio/detail/noncopyable.hpp>
-#include <boost/asio/detail/op_queue.hpp>
-#include <boost/asio/detail/reactor_op.hpp>
-#include <boost/asio/error.hpp>
+#include "asio/detail/config.hpp"
+#include "asio/detail/hash_map.hpp"
+#include "asio/detail/noncopyable.hpp"
+#include "asio/detail/op_queue.hpp"
+#include "asio/detail/reactor_op.hpp"
+#include "asio/error.hpp"
 
-#include <boost/asio/detail/push_options.hpp>
+#include "asio/detail/push_options.hpp"
 
-namespace boost {
 namespace asio {
 namespace detail {
 
@@ -72,8 +71,8 @@ public:
   // the reactor's event demultiplexing function may need to be interrupted and
   // restarted.
   bool cancel_operations(iterator i, op_queue<operation>& ops,
-      const boost::system::error_code& ec =
-        boost::asio::error::operation_aborted)
+      const asio::error_code& ec =
+        asio::error::operation_aborted)
   {
     if (i != operations_.end())
     {
@@ -95,8 +94,8 @@ public:
   // operations were cancelled, in which case the reactor's event
   // demultiplexing function may need to be interrupted and restarted.
   bool cancel_operations(Descriptor descriptor, op_queue<operation>& ops,
-      const boost::system::error_code& ec =
-        boost::asio::error::operation_aborted)
+      const asio::error_code& ec =
+        asio::error::operation_aborted)
   {
     return this->cancel_operations(operations_.find(descriptor), ops, ec);
   }
@@ -163,8 +162,7 @@ private:
 
 } // namespace detail
 } // namespace asio
-} // namespace boost
 
-#include <boost/asio/detail/pop_options.hpp>
+#include "asio/detail/pop_options.hpp"
 
-#endif // BOOST_ASIO_DETAIL_REACTOR_OP_QUEUE_HPP
+#endif // ASIO_DETAIL_REACTOR_OP_QUEUE_HPP

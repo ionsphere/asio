@@ -2,46 +2,45 @@
 // impl/serial_port_base.ipp
 // ~~~~~~~~~~~~~~~~~~~~~~~~~
 //
-// Copyright (c) 2003-2016 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+// Copyright (c) 2003-2018 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 // Copyright (c) 2008 Rep Invariant Systems, Inc. (info@repinvariant.com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
-#ifndef BOOST_ASIO_IMPL_SERIAL_PORT_BASE_IPP
-#define BOOST_ASIO_IMPL_SERIAL_PORT_BASE_IPP
+#ifndef ASIO_IMPL_SERIAL_PORT_BASE_IPP
+#define ASIO_IMPL_SERIAL_PORT_BASE_IPP
 
 #if defined(_MSC_VER) && (_MSC_VER >= 1200)
 # pragma once
 #endif // defined(_MSC_VER) && (_MSC_VER >= 1200)
 
-#include <boost/asio/detail/config.hpp>
+#include "asio/detail/config.hpp"
 
-#if defined(BOOST_ASIO_HAS_SERIAL_PORT)
+#if defined(ASIO_HAS_SERIAL_PORT)
 
 #include <stdexcept>
-#include <boost/asio/error.hpp>
-#include <boost/asio/serial_port_base.hpp>
-#include <boost/asio/detail/throw_exception.hpp>
+#include "asio/error.hpp"
+#include "asio/serial_port_base.hpp"
+#include "asio/detail/throw_exception.hpp"
 
 #if defined(GENERATING_DOCUMENTATION)
-# define BOOST_ASIO_OPTION_STORAGE implementation_defined
-#elif defined(BOOST_ASIO_WINDOWS) || defined(__CYGWIN__)
-# define BOOST_ASIO_OPTION_STORAGE DCB
+# define ASIO_OPTION_STORAGE implementation_defined
+#elif defined(ASIO_WINDOWS) || defined(__CYGWIN__)
+# define ASIO_OPTION_STORAGE DCB
 #else
-# define BOOST_ASIO_OPTION_STORAGE termios
+# define ASIO_OPTION_STORAGE termios
 #endif
 
-#include <boost/asio/detail/push_options.hpp>
+#include "asio/detail/push_options.hpp"
 
-namespace boost {
 namespace asio {
 
-boost::system::error_code serial_port_base::baud_rate::store(
-    BOOST_ASIO_OPTION_STORAGE& storage, boost::system::error_code& ec) const
+ASIO_SYNC_OP_VOID serial_port_base::baud_rate::store(
+    ASIO_OPTION_STORAGE& storage, asio::error_code& ec) const
 {
-#if defined(BOOST_ASIO_WINDOWS) || defined(__CYGWIN__)
+#if defined(ASIO_WINDOWS) || defined(__CYGWIN__)
   storage.BaudRate = value_;
 #else
   speed_t baud;
@@ -111,24 +110,24 @@ boost::system::error_code serial_port_base::baud_rate::store(
   case 4000000: baud = B4000000; break;
 # endif
   default:
-    ec = boost::asio::error::invalid_argument;
-    return ec;
+    ec = asio::error::invalid_argument;
+    ASIO_SYNC_OP_VOID_RETURN(ec);
   }
-# if defined(_BSD_SOURCE)
+# if defined(_BSD_SOURCE) || defined(_DEFAULT_SOURCE)
   ::cfsetspeed(&storage, baud);
 # else
   ::cfsetispeed(&storage, baud);
   ::cfsetospeed(&storage, baud);
 # endif
 #endif
-  ec = boost::system::error_code();
-  return ec;
+  ec = asio::error_code();
+  ASIO_SYNC_OP_VOID_RETURN(ec);
 }
 
-boost::system::error_code serial_port_base::baud_rate::load(
-    const BOOST_ASIO_OPTION_STORAGE& storage, boost::system::error_code& ec)
+ASIO_SYNC_OP_VOID serial_port_base::baud_rate::load(
+    const ASIO_OPTION_STORAGE& storage, asio::error_code& ec)
 {
-#if defined(BOOST_ASIO_WINDOWS) || defined(__CYGWIN__)
+#if defined(ASIO_WINDOWS) || defined(__CYGWIN__)
   value_ = storage.BaudRate;
 #else
   speed_t baud = ::cfgetospeed(&storage);
@@ -199,12 +198,12 @@ boost::system::error_code serial_port_base::baud_rate::load(
 # endif
   default:
     value_ = 0;
-    ec = boost::asio::error::invalid_argument;
-    return ec;
+    ec = asio::error::invalid_argument;
+    ASIO_SYNC_OP_VOID_RETURN(ec);
   }
 #endif
-  ec = boost::system::error_code();
-  return ec;
+  ec = asio::error_code();
+  ASIO_SYNC_OP_VOID_RETURN(ec);
 }
 
 serial_port_base::flow_control::flow_control(
@@ -214,14 +213,14 @@ serial_port_base::flow_control::flow_control(
   if (t != none && t != software && t != hardware)
   {
     std::out_of_range ex("invalid flow_control value");
-    boost::asio::detail::throw_exception(ex);
+    asio::detail::throw_exception(ex);
   }
 }
 
-boost::system::error_code serial_port_base::flow_control::store(
-    BOOST_ASIO_OPTION_STORAGE& storage, boost::system::error_code& ec) const
+ASIO_SYNC_OP_VOID serial_port_base::flow_control::store(
+    ASIO_OPTION_STORAGE& storage, asio::error_code& ec) const
 {
-#if defined(BOOST_ASIO_WINDOWS) || defined(__CYGWIN__)
+#if defined(ASIO_WINDOWS) || defined(__CYGWIN__)
   storage.fOutxCtsFlow = FALSE;
   storage.fOutxDsrFlow = FALSE;
   storage.fTXContinueOnXoff = TRUE;
@@ -250,7 +249,7 @@ boost::system::error_code serial_port_base::flow_control::store(
   {
   case none:
     storage.c_iflag &= ~(IXOFF | IXON);
-# if defined(_BSD_SOURCE)
+# if defined(_BSD_SOURCE) || defined(_DEFAULT_SOURCE)
     storage.c_cflag &= ~CRTSCTS;
 # elif defined(__QNXNTO__)
     storage.c_cflag &= ~(IHFLOW | OHFLOW);
@@ -258,14 +257,14 @@ boost::system::error_code serial_port_base::flow_control::store(
     break;
   case software:
     storage.c_iflag |= IXOFF | IXON;
-# if defined(_BSD_SOURCE)
+# if defined(_BSD_SOURCE) || defined(_DEFAULT_SOURCE)
     storage.c_cflag &= ~CRTSCTS;
 # elif defined(__QNXNTO__)
     storage.c_cflag &= ~(IHFLOW | OHFLOW);
 # endif
     break;
   case hardware:
-# if defined(_BSD_SOURCE)
+# if defined(_BSD_SOURCE) || defined(_DEFAULT_SOURCE)
     storage.c_iflag &= ~(IXOFF | IXON);
     storage.c_cflag |= CRTSCTS;
     break;
@@ -274,21 +273,21 @@ boost::system::error_code serial_port_base::flow_control::store(
     storage.c_cflag |= (IHFLOW | OHFLOW);
     break;
 # else
-    ec = boost::asio::error::operation_not_supported;
-    return ec;
+    ec = asio::error::operation_not_supported;
+    ASIO_SYNC_OP_VOID_RETURN(ec);
 # endif
   default:
     break;
   }
 #endif
-  ec = boost::system::error_code();
-  return ec;
+  ec = asio::error_code();
+  ASIO_SYNC_OP_VOID_RETURN(ec);
 }
 
-boost::system::error_code serial_port_base::flow_control::load(
-    const BOOST_ASIO_OPTION_STORAGE& storage, boost::system::error_code& ec)
+ASIO_SYNC_OP_VOID serial_port_base::flow_control::load(
+    const ASIO_OPTION_STORAGE& storage, asio::error_code& ec)
 {
-#if defined(BOOST_ASIO_WINDOWS) || defined(__CYGWIN__)
+#if defined(ASIO_WINDOWS) || defined(__CYGWIN__)
   if (storage.fOutX && storage.fInX)
   {
     value_ = software;
@@ -306,7 +305,7 @@ boost::system::error_code serial_port_base::flow_control::load(
   {
     value_ = software;
   }
-# if defined(_BSD_SOURCE)
+# if defined(_BSD_SOURCE) || defined(_DEFAULT_SOURCE)
   else if (storage.c_cflag & CRTSCTS)
   {
     value_ = hardware;
@@ -322,8 +321,8 @@ boost::system::error_code serial_port_base::flow_control::load(
     value_ = none;
   }
 #endif
-  ec = boost::system::error_code();
-  return ec;
+  ec = asio::error_code();
+  ASIO_SYNC_OP_VOID_RETURN(ec);
 }
 
 serial_port_base::parity::parity(serial_port_base::parity::type t)
@@ -332,14 +331,14 @@ serial_port_base::parity::parity(serial_port_base::parity::type t)
   if (t != none && t != odd && t != even)
   {
     std::out_of_range ex("invalid parity value");
-    boost::asio::detail::throw_exception(ex);
+    asio::detail::throw_exception(ex);
   }
 }
 
-boost::system::error_code serial_port_base::parity::store(
-    BOOST_ASIO_OPTION_STORAGE& storage, boost::system::error_code& ec) const
+ASIO_SYNC_OP_VOID serial_port_base::parity::store(
+    ASIO_OPTION_STORAGE& storage, asio::error_code& ec) const
 {
-#if defined(BOOST_ASIO_WINDOWS) || defined(__CYGWIN__)
+#if defined(ASIO_WINDOWS) || defined(__CYGWIN__)
   switch (value_)
   {
   case none:
@@ -379,14 +378,14 @@ boost::system::error_code serial_port_base::parity::store(
     break;
   }
 #endif
-  ec = boost::system::error_code();
-  return ec;
+  ec = asio::error_code();
+  ASIO_SYNC_OP_VOID_RETURN(ec);
 }
 
-boost::system::error_code serial_port_base::parity::load(
-    const BOOST_ASIO_OPTION_STORAGE& storage, boost::system::error_code& ec)
+ASIO_SYNC_OP_VOID serial_port_base::parity::load(
+    const ASIO_OPTION_STORAGE& storage, asio::error_code& ec)
 {
-#if defined(BOOST_ASIO_WINDOWS) || defined(__CYGWIN__)
+#if defined(ASIO_WINDOWS) || defined(__CYGWIN__)
   if (storage.Parity == EVENPARITY)
   {
     value_ = even;
@@ -416,8 +415,8 @@ boost::system::error_code serial_port_base::parity::load(
     value_ = none;
   }
 #endif
-  ec = boost::system::error_code();
-  return ec;
+  ec = asio::error_code();
+  ASIO_SYNC_OP_VOID_RETURN(ec);
 }
 
 serial_port_base::stop_bits::stop_bits(
@@ -427,14 +426,14 @@ serial_port_base::stop_bits::stop_bits(
   if (t != one && t != onepointfive && t != two)
   {
     std::out_of_range ex("invalid stop_bits value");
-    boost::asio::detail::throw_exception(ex);
+    asio::detail::throw_exception(ex);
   }
 }
 
-boost::system::error_code serial_port_base::stop_bits::store(
-    BOOST_ASIO_OPTION_STORAGE& storage, boost::system::error_code& ec) const
+ASIO_SYNC_OP_VOID serial_port_base::stop_bits::store(
+    ASIO_OPTION_STORAGE& storage, asio::error_code& ec) const
 {
-#if defined(BOOST_ASIO_WINDOWS) || defined(__CYGWIN__)
+#if defined(ASIO_WINDOWS) || defined(__CYGWIN__)
   switch (value_)
   {
   case one:
@@ -459,18 +458,18 @@ boost::system::error_code serial_port_base::stop_bits::store(
     storage.c_cflag |= CSTOPB;
     break;
   default:
-    ec = boost::asio::error::operation_not_supported;
-    return ec;
+    ec = asio::error::operation_not_supported;
+    ASIO_SYNC_OP_VOID_RETURN(ec);
   }
 #endif
-  ec = boost::system::error_code();
-  return ec;
+  ec = asio::error_code();
+  ASIO_SYNC_OP_VOID_RETURN(ec);
 }
 
-boost::system::error_code serial_port_base::stop_bits::load(
-    const BOOST_ASIO_OPTION_STORAGE& storage, boost::system::error_code& ec)
+ASIO_SYNC_OP_VOID serial_port_base::stop_bits::load(
+    const ASIO_OPTION_STORAGE& storage, asio::error_code& ec)
 {
-#if defined(BOOST_ASIO_WINDOWS) || defined(__CYGWIN__)
+#if defined(ASIO_WINDOWS) || defined(__CYGWIN__)
   if (storage.StopBits == ONESTOPBIT)
   {
     value_ = one;
@@ -490,8 +489,8 @@ boost::system::error_code serial_port_base::stop_bits::load(
 #else
   value_ = (storage.c_cflag & CSTOPB) ? two : one;
 #endif
-  ec = boost::system::error_code();
-  return ec;
+  ec = asio::error_code();
+  ASIO_SYNC_OP_VOID_RETURN(ec);
 }
 
 serial_port_base::character_size::character_size(unsigned int t)
@@ -500,14 +499,14 @@ serial_port_base::character_size::character_size(unsigned int t)
   if (t < 5 || t > 8)
   {
     std::out_of_range ex("invalid character_size value");
-    boost::asio::detail::throw_exception(ex);
+    asio::detail::throw_exception(ex);
   }
 }
 
-boost::system::error_code serial_port_base::character_size::store(
-    BOOST_ASIO_OPTION_STORAGE& storage, boost::system::error_code& ec) const
+ASIO_SYNC_OP_VOID serial_port_base::character_size::store(
+    ASIO_OPTION_STORAGE& storage, asio::error_code& ec) const
 {
-#if defined(BOOST_ASIO_WINDOWS) || defined(__CYGWIN__)
+#if defined(ASIO_WINDOWS) || defined(__CYGWIN__)
   storage.ByteSize = value_;
 #else
   storage.c_cflag &= ~CSIZE;
@@ -520,14 +519,14 @@ boost::system::error_code serial_port_base::character_size::store(
   default: break;
   }
 #endif
-  ec = boost::system::error_code();
-  return ec;
+  ec = asio::error_code();
+  ASIO_SYNC_OP_VOID_RETURN(ec);
 }
 
-boost::system::error_code serial_port_base::character_size::load(
-    const BOOST_ASIO_OPTION_STORAGE& storage, boost::system::error_code& ec)
+ASIO_SYNC_OP_VOID serial_port_base::character_size::load(
+    const ASIO_OPTION_STORAGE& storage, asio::error_code& ec)
 {
-#if defined(BOOST_ASIO_WINDOWS) || defined(__CYGWIN__)
+#if defined(ASIO_WINDOWS) || defined(__CYGWIN__)
   value_ = storage.ByteSize;
 #else
   if ((storage.c_cflag & CSIZE) == CS5) { value_ = 5; }
@@ -540,17 +539,16 @@ boost::system::error_code serial_port_base::character_size::load(
     value_ = 8;
   }
 #endif
-  ec = boost::system::error_code();
-  return ec;
+  ec = asio::error_code();
+  ASIO_SYNC_OP_VOID_RETURN(ec);
 }
 
 } // namespace asio
-} // namespace boost
 
-#include <boost/asio/detail/pop_options.hpp>
+#include "asio/detail/pop_options.hpp"
 
-#undef BOOST_ASIO_OPTION_STORAGE
+#undef ASIO_OPTION_STORAGE
 
-#endif // defined(BOOST_ASIO_HAS_SERIAL_PORT)
+#endif // defined(ASIO_HAS_SERIAL_PORT)
 
-#endif // BOOST_ASIO_IMPL_SERIAL_PORT_BASE_IPP
+#endif // ASIO_IMPL_SERIAL_PORT_BASE_IPP

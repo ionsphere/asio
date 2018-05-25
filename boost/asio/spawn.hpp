@@ -2,29 +2,32 @@
 // spawn.hpp
 // ~~~~~~~~~
 //
-// Copyright (c) 2003-2016 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+// Copyright (c) 2003-2018 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
-#ifndef BOOST_ASIO_SPAWN_HPP
-#define BOOST_ASIO_SPAWN_HPP
+#ifndef ASIO_SPAWN_HPP
+#define ASIO_SPAWN_HPP
 
 #if defined(_MSC_VER) && (_MSC_VER >= 1200)
 # pragma once
 #endif // defined(_MSC_VER) && (_MSC_VER >= 1200)
 
-#include <boost/asio/detail/config.hpp>
+#include "asio/detail/config.hpp"
 #include <boost/coroutine/all.hpp>
-#include <boost/asio/detail/weak_ptr.hpp>
-#include <boost/asio/detail/wrapped_handler.hpp>
-#include <boost/asio/io_service.hpp>
-#include <boost/asio/strand.hpp>
+#include "asio/bind_executor.hpp"
+#include "asio/detail/memory.hpp"
+#include "asio/detail/type_traits.hpp"
+#include "asio/detail/wrapped_handler.hpp"
+#include "asio/executor.hpp"
+#include "asio/io_context.hpp"
+#include "asio/is_executor.hpp"
+#include "asio/strand.hpp"
 
-#include <boost/asio/detail/push_options.hpp>
+#include "asio/detail/push_options.hpp"
 
-namespace boost {
 namespace asio {
 
 /// Context object the represents the currently executing coroutine.
@@ -95,6 +98,19 @@ public:
   {
   }
 
+  /// Construct a yield context from another yield context type.
+  /**
+   * Requires that OtherHandler be convertible to Handler.
+   */
+  template <typename OtherHandler>
+  basic_yield_context(const basic_yield_context<OtherHandler>& other)
+    : coro_(other.coro_),
+      ca_(other.ca_),
+      handler_(other.handler_),
+      ec_(other.ec_)
+  {
+  }
+
   /// Return a yield context that sets the specified error_code.
   /**
    * By default, when a yield context is used with an asynchronous operation, a
@@ -114,7 +130,7 @@ public:
    *   ...
    * } @endcode
    */
-  basic_yield_context operator[](boost::system::error_code& ec) const
+  basic_yield_context operator[](asio::error_code& ec) const
   {
     basic_yield_context tmp(*this);
     tmp.ec_ = &ec;
@@ -126,8 +142,8 @@ private:
 #endif // defined(GENERATING_DOCUMENTATION)
   detail::weak_ptr<callee_type> coro_;
   caller_type& ca_;
-  Handler& handler_;
-  boost::system::error_code* ec_;
+  Handler handler_;
+  asio::error_code* ec_;
 };
 
 #if defined(GENERATING_DOCUMENTATION)
@@ -135,13 +151,11 @@ private:
 typedef basic_yield_context<unspecified> yield_context;
 #else // defined(GENERATING_DOCUMENTATION)
 typedef basic_yield_context<
-  detail::wrapped_handler<
-    io_service::strand, void(*)(),
-    detail::is_continuation_if_running> > yield_context;
+  executor_binder<void(*)(), executor> > yield_context;
 #endif // defined(GENERATING_DOCUMENTATION)
 
 /**
- * @defgroup spawn boost::asio::spawn
+ * @defgroup spawn asio::spawn
  *
  * @brief Start a new stackful coroutine.
  *
@@ -149,11 +163,11 @@ typedef basic_yield_context<
  * library. This function enables programs to implement asynchronous logic in a
  * synchronous manner, as illustrated by the following example:
  *
- * @code boost::asio::spawn(my_strand, do_echo);
+ * @code asio::spawn(my_strand, do_echo);
  *
  * // ...
  *
- * void do_echo(boost::asio::yield_context yield)
+ * void do_echo(asio::yield_context yield)
  * {
  *   try
  *   {
@@ -162,10 +176,10 @@ typedef basic_yield_context<
  *     {
  *       std::size_t length =
  *         my_socket.async_read_some(
- *           boost::asio::buffer(data), yield);
+ *           asio::buffer(data), yield);
  *
- *       boost::asio::async_write(my_socket,
- *           boost::asio::buffer(data, length), yield);
+ *       asio::async_write(my_socket,
+ *           asio::buffer(data, length), yield);
  *     }
  *   }
  *   catch (std::exception& e)
@@ -175,6 +189,21 @@ typedef basic_yield_context<
  * } @endcode
  */
 /*@{*/
+
+/// Start a new stackful coroutine, calling the specified handler when it
+/// completes.
+/**
+ * This function is used to launch a new coroutine.
+ *
+ * @param function The coroutine function. The function must have the signature:
+ * @code void function(basic_yield_context<Handler> yield); @endcode
+ *
+ * @param attributes Boost.Coroutine attributes used to customise the coroutine.
+ */
+template <typename Function>
+void spawn(ASIO_MOVE_ARG(Function) function,
+    const boost::coroutines::attributes& attributes
+      = boost::coroutines::attributes());
 
 /// Start a new stackful coroutine, calling the specified handler when it
 /// completes.
@@ -192,10 +221,12 @@ typedef basic_yield_context<
  * @param attributes Boost.Coroutine attributes used to customise the coroutine.
  */
 template <typename Handler, typename Function>
-void spawn(BOOST_ASIO_MOVE_ARG(Handler) handler,
-    BOOST_ASIO_MOVE_ARG(Function) function,
+void spawn(ASIO_MOVE_ARG(Handler) handler,
+    ASIO_MOVE_ARG(Function) function,
     const boost::coroutines::attributes& attributes
-      = boost::coroutines::attributes());
+      = boost::coroutines::attributes(),
+    typename enable_if<!is_executor<typename decay<Handler>::type>::value &&
+      !is_convertible<Handler&, execution_context&>::value>::type* = 0);
 
 /// Start a new stackful coroutine, inheriting the execution context of another.
 /**
@@ -214,7 +245,43 @@ void spawn(BOOST_ASIO_MOVE_ARG(Handler) handler,
  */
 template <typename Handler, typename Function>
 void spawn(basic_yield_context<Handler> ctx,
-    BOOST_ASIO_MOVE_ARG(Function) function,
+    ASIO_MOVE_ARG(Function) function,
+    const boost::coroutines::attributes& attributes
+      = boost::coroutines::attributes());
+
+/// Start a new stackful coroutine that executes on a given executor.
+/**
+ * This function is used to launch a new coroutine.
+ *
+ * @param ex Identifies the executor that will run the coroutine. The new
+ * coroutine is implicitly given its own strand within this executor.
+ *
+ * @param function The coroutine function. The function must have the signature:
+ * @code void function(yield_context yield); @endcode
+ *
+ * @param attributes Boost.Coroutine attributes used to customise the coroutine.
+ */
+template <typename Function, typename Executor>
+void spawn(const Executor& ex,
+    ASIO_MOVE_ARG(Function) function,
+    const boost::coroutines::attributes& attributes
+      = boost::coroutines::attributes(),
+    typename enable_if<is_executor<Executor>::value>::type* = 0);
+
+/// Start a new stackful coroutine that executes on a given strand.
+/**
+ * This function is used to launch a new coroutine.
+ *
+ * @param ex Identifies the strand that will run the coroutine.
+ *
+ * @param function The coroutine function. The function must have the signature:
+ * @code void function(yield_context yield); @endcode
+ *
+ * @param attributes Boost.Coroutine attributes used to customise the coroutine.
+ */
+template <typename Function, typename Executor>
+void spawn(const strand<Executor>& ex,
+    ASIO_MOVE_ARG(Function) function,
     const boost::coroutines::attributes& attributes
       = boost::coroutines::attributes());
 
@@ -222,9 +289,9 @@ void spawn(basic_yield_context<Handler> ctx,
 /**
  * This function is used to launch a new coroutine.
  *
- * @param strand Identifies a strand. By starting multiple coroutines on the
- * same strand, the implementation ensures that none of those coroutines can
- * execute simultaneously.
+ * @param s Identifies a strand. By starting multiple coroutines on the same
+ * strand, the implementation ensures that none of those coroutines can execute
+ * simultaneously.
  *
  * @param function The coroutine function. The function must have the signature:
  * @code void function(yield_context yield); @endcode
@@ -232,36 +299,38 @@ void spawn(basic_yield_context<Handler> ctx,
  * @param attributes Boost.Coroutine attributes used to customise the coroutine.
  */
 template <typename Function>
-void spawn(boost::asio::io_service::strand strand,
-    BOOST_ASIO_MOVE_ARG(Function) function,
+void spawn(const asio::io_context::strand& s,
+    ASIO_MOVE_ARG(Function) function,
     const boost::coroutines::attributes& attributes
       = boost::coroutines::attributes());
 
-/// Start a new stackful coroutine that executes on a given io_service.
+/// Start a new stackful coroutine that executes on a given execution context.
 /**
  * This function is used to launch a new coroutine.
  *
- * @param io_service Identifies the io_service that will run the coroutine. The
- * new coroutine is implicitly given its own strand within this io_service.
+ * @param ctx Identifies the execution context that will run the coroutine. The
+ * new coroutine is implicitly given its own strand within this execution
+ * context.
  *
  * @param function The coroutine function. The function must have the signature:
  * @code void function(yield_context yield); @endcode
  *
  * @param attributes Boost.Coroutine attributes used to customise the coroutine.
  */
-template <typename Function>
-void spawn(boost::asio::io_service& io_service,
-    BOOST_ASIO_MOVE_ARG(Function) function,
+template <typename Function, typename ExecutionContext>
+void spawn(ExecutionContext& ctx,
+    ASIO_MOVE_ARG(Function) function,
     const boost::coroutines::attributes& attributes
-      = boost::coroutines::attributes());
+      = boost::coroutines::attributes(),
+    typename enable_if<is_convertible<
+      ExecutionContext&, execution_context&>::value>::type* = 0);
 
 /*@}*/
 
 } // namespace asio
-} // namespace boost
 
-#include <boost/asio/detail/pop_options.hpp>
+#include "asio/detail/pop_options.hpp"
 
-#include <boost/asio/impl/spawn.hpp>
+#include "asio/impl/spawn.hpp"
 
-#endif // BOOST_ASIO_SPAWN_HPP
+#endif // ASIO_SPAWN_HPP

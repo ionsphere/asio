@@ -2,29 +2,28 @@
 // time_traits.hpp
 // ~~~~~~~~~~~~~~~
 //
-// Copyright (c) 2003-2016 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+// Copyright (c) 2003-2018 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
-#ifndef BOOST_ASIO_TIME_TRAITS_HPP
-#define BOOST_ASIO_TIME_TRAITS_HPP
+#ifndef ASIO_TIME_TRAITS_HPP
+#define ASIO_TIME_TRAITS_HPP
 
 #if defined(_MSC_VER) && (_MSC_VER >= 1200)
 # pragma once
 #endif // defined(_MSC_VER) && (_MSC_VER >= 1200)
 
-#include <boost/asio/detail/socket_types.hpp> // Must come before posix_time.
+#include "asio/detail/socket_types.hpp" // Must come before posix_time.
 
-#if defined(BOOST_ASIO_HAS_BOOST_DATE_TIME) \
+#if defined(ASIO_HAS_BOOST_DATE_TIME) \
   || defined(GENERATING_DOCUMENTATION)
 
 #include <boost/date_time/posix_time/posix_time_types.hpp>
 
-#include <boost/asio/detail/push_options.hpp>
+#include "asio/detail/push_options.hpp"
 
-namespace boost {
 namespace asio {
 
 /// Time traits suitable for use with the deadline timer.
@@ -78,11 +77,10 @@ struct time_traits<boost::posix_time::ptime>
 };
 
 } // namespace asio
-} // namespace boost
 
-#include <boost/asio/detail/pop_options.hpp>
+#include "asio/detail/pop_options.hpp"
 
-#endif // defined(BOOST_ASIO_HAS_BOOST_DATE_TIME)
+#endif // defined(ASIO_HAS_BOOST_DATE_TIME)
        // || defined(GENERATING_DOCUMENTATION)
 
-#endif // BOOST_ASIO_TIME_TRAITS_HPP
+#endif // ASIO_TIME_TRAITS_HPP

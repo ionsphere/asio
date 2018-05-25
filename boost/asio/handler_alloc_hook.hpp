@@ -2,25 +2,24 @@
 // handler_alloc_hook.hpp
 // ~~~~~~~~~~~~~~~~~~~~~~
 //
-// Copyright (c) 2003-2016 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+// Copyright (c) 2003-2018 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
-#ifndef BOOST_ASIO_HANDLER_ALLOC_HOOK_HPP
-#define BOOST_ASIO_HANDLER_ALLOC_HOOK_HPP
+#ifndef ASIO_HANDLER_ALLOC_HOOK_HPP
+#define ASIO_HANDLER_ALLOC_HOOK_HPP
 
 #if defined(_MSC_VER) && (_MSC_VER >= 1200)
 # pragma once
 #endif // defined(_MSC_VER) && (_MSC_VER >= 1200)
 
-#include <boost/asio/detail/config.hpp>
+#include "asio/detail/config.hpp"
 #include <cstddef>
 
-#include <boost/asio/detail/push_options.hpp>
+#include "asio/detail/push_options.hpp"
 
-namespace boost {
 namespace asio {
 
 /// Default allocation function for handlers.
@@ -55,7 +54,7 @@ namespace asio {
  * }
  * @endcode
  */
-BOOST_ASIO_DECL void* asio_handler_allocate(
+ASIO_DECL void* asio_handler_allocate(
     std::size_t size, ...);
 
 /// Default deallocation function for handlers.
@@ -68,16 +67,15 @@ BOOST_ASIO_DECL void* asio_handler_allocate(
  *
  * @sa asio_handler_allocate.
  */
-BOOST_ASIO_DECL void asio_handler_deallocate(
+ASIO_DECL void asio_handler_deallocate(
     void* pointer, std::size_t size, ...);
 
 } // namespace asio
-} // namespace boost
 
-#include <boost/asio/detail/pop_options.hpp>
+#include "asio/detail/pop_options.hpp"
 
-#if defined(BOOST_ASIO_HEADER_ONLY)
-# include <boost/asio/impl/handler_alloc_hook.ipp>
-#endif // defined(BOOST_ASIO_HEADER_ONLY)
+#if defined(ASIO_HEADER_ONLY)
+# include "asio/impl/handler_alloc_hook.ipp"
+#endif // defined(ASIO_HEADER_ONLY)
 
-#endif // BOOST_ASIO_HANDLER_ALLOC_HOOK_HPP
+#endif // ASIO_HANDLER_ALLOC_HOOK_HPP

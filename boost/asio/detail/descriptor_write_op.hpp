@@ -2,33 +2,33 @@
 // detail/descriptor_write_op.hpp
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //
-// Copyright (c) 2003-2016 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+// Copyright (c) 2003-2018 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
-#ifndef BOOST_ASIO_DETAIL_DESCRIPTOR_WRITE_OP_HPP
-#define BOOST_ASIO_DETAIL_DESCRIPTOR_WRITE_OP_HPP
+#ifndef ASIO_DETAIL_DESCRIPTOR_WRITE_OP_HPP
+#define ASIO_DETAIL_DESCRIPTOR_WRITE_OP_HPP
 
 #if defined(_MSC_VER) && (_MSC_VER >= 1200)
 # pragma once
 #endif // defined(_MSC_VER) && (_MSC_VER >= 1200)
 
-#include <boost/asio/detail/config.hpp>
+#include "asio/detail/config.hpp"
 
-#if !defined(BOOST_ASIO_WINDOWS) && !defined(__CYGWIN__)
+#if !defined(ASIO_WINDOWS) && !defined(__CYGWIN__)
 
-#include <boost/asio/detail/addressof.hpp>
-#include <boost/asio/detail/bind_handler.hpp>
-#include <boost/asio/detail/buffer_sequence_adapter.hpp>
-#include <boost/asio/detail/descriptor_ops.hpp>
-#include <boost/asio/detail/fenced_block.hpp>
-#include <boost/asio/detail/reactor_op.hpp>
+#include "asio/detail/bind_handler.hpp"
+#include "asio/detail/buffer_sequence_adapter.hpp"
+#include "asio/detail/descriptor_ops.hpp"
+#include "asio/detail/fenced_block.hpp"
+#include "asio/detail/handler_work.hpp"
+#include "asio/detail/memory.hpp"
+#include "asio/detail/reactor_op.hpp"
 
-#include <boost/asio/detail/push_options.hpp>
+#include "asio/detail/push_options.hpp"
 
-namespace boost {
 namespace asio {
 namespace detail {
 
@@ -44,15 +44,21 @@ public:
   {
   }
 
-  static bool do_perform(reactor_op* base)
+  static status do_perform(reactor_op* base)
   {
     descriptor_write_op_base* o(static_cast<descriptor_write_op_base*>(base));
 
-    buffer_sequence_adapter<boost::asio::const_buffer,
+    buffer_sequence_adapter<asio::const_buffer,
         ConstBufferSequence> bufs(o->buffers_);
 
-    return descriptor_ops::non_blocking_write(o->descriptor_,
-        bufs.buffers(), bufs.count(), o->ec_, o->bytes_transferred_);
+    status result = descriptor_ops::non_blocking_write(o->descriptor_,
+        bufs.buffers(), bufs.count(), o->ec_, o->bytes_transferred_)
+      ? done : not_done;
+
+    ASIO_HANDLER_REACTOR_OPERATION((*o, "non_blocking_write",
+          o->ec_, o->bytes_transferred_));
+
+    return result;
   }
 
 private:
@@ -65,25 +71,27 @@ class descriptor_write_op
   : public descriptor_write_op_base<ConstBufferSequence>
 {
 public:
-  BOOST_ASIO_DEFINE_HANDLER_PTR(descriptor_write_op);
+  ASIO_DEFINE_HANDLER_PTR(descriptor_write_op);
 
   descriptor_write_op(int descriptor,
       const ConstBufferSequence& buffers, Handler& handler)
     : descriptor_write_op_base<ConstBufferSequence>(
         descriptor, buffers, &descriptor_write_op::do_complete),
-      handler_(BOOST_ASIO_MOVE_CAST(Handler)(handler))
+      handler_(ASIO_MOVE_CAST(Handler)(handler))
   {
+    handler_work<Handler>::start(handler_);
   }
 
-  static void do_complete(io_service_impl* owner, operation* base,
-      const boost::system::error_code& /*ec*/,
+  static void do_complete(void* owner, operation* base,
+      const asio::error_code& /*ec*/,
       std::size_t /*bytes_transferred*/)
   {
     // Take ownership of the handler object.
     descriptor_write_op* o(static_cast<descriptor_write_op*>(base));
-    ptr p = { boost::asio::detail::addressof(o->handler_), o, o };
+    ptr p = { asio::detail::addressof(o->handler_), o, o };
+    handler_work<Handler> w(o->handler_);
 
-    BOOST_ASIO_HANDLER_COMPLETION((o));
+    ASIO_HANDLER_COMPLETION((*o));
 
     // Make a copy of the handler so that the memory can be deallocated before
     // the upcall is made. Even if we're not about to make an upcall, a
@@ -91,18 +99,18 @@ public:
     // with the handler. Consequently, a local copy of the handler is required
     // to ensure that any owning sub-object remains valid until after we have
     // deallocated the memory here.
-    detail::binder2<Handler, boost::system::error_code, std::size_t>
+    detail::binder2<Handler, asio::error_code, std::size_t>
       handler(o->handler_, o->ec_, o->bytes_transferred_);
-    p.h = boost::asio::detail::addressof(handler.handler_);
+    p.h = asio::detail::addressof(handler.handler_);
     p.reset();
 
     // Make the upcall if required.
     if (owner)
     {
       fenced_block b(fenced_block::half);
-      BOOST_ASIO_HANDLER_INVOCATION_BEGIN((handler.arg1_, handler.arg2_));
-      boost_asio_handler_invoke_helpers::invoke(handler, handler.handler_);
-      BOOST_ASIO_HANDLER_INVOCATION_END;
+      ASIO_HANDLER_INVOCATION_BEGIN((handler.arg1_, handler.arg2_));
+      w.complete(handler, handler.handler_);
+      ASIO_HANDLER_INVOCATION_END;
     }
   }
 
@@ -112,10 +120,9 @@ private:
 
 } // namespace detail
 } // namespace asio
-} // namespace boost
 
-#include <boost/asio/detail/pop_options.hpp>
+#include "asio/detail/pop_options.hpp"
 
-#endif // !defined(BOOST_ASIO_WINDOWS) && !defined(__CYGWIN__)
+#endif // !defined(ASIO_WINDOWS) && !defined(__CYGWIN__)
 
-#endif // BOOST_ASIO_DETAIL_DESCRIPTOR_WRITE_OP_HPP
+#endif // ASIO_DETAIL_DESCRIPTOR_WRITE_OP_HPP

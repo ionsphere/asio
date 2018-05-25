@@ -2,33 +2,32 @@
 // detail/timer_queue.hpp
 // ~~~~~~~~~~~~~~~~~~~~~~
 //
-// Copyright (c) 2003-2016 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+// Copyright (c) 2003-2018 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
-#ifndef BOOST_ASIO_DETAIL_TIMER_QUEUE_HPP
-#define BOOST_ASIO_DETAIL_TIMER_QUEUE_HPP
+#ifndef ASIO_DETAIL_TIMER_QUEUE_HPP
+#define ASIO_DETAIL_TIMER_QUEUE_HPP
 
 #if defined(_MSC_VER) && (_MSC_VER >= 1200)
 # pragma once
 #endif // defined(_MSC_VER) && (_MSC_VER >= 1200)
 
-#include <boost/asio/detail/config.hpp>
+#include "asio/detail/config.hpp"
 #include <cstddef>
 #include <vector>
-#include <boost/asio/detail/cstdint.hpp>
-#include <boost/asio/detail/date_time_fwd.hpp>
-#include <boost/asio/detail/limits.hpp>
-#include <boost/asio/detail/op_queue.hpp>
-#include <boost/asio/detail/timer_queue_base.hpp>
-#include <boost/asio/detail/wait_op.hpp>
-#include <boost/asio/error.hpp>
+#include "asio/detail/cstdint.hpp"
+#include "asio/detail/date_time_fwd.hpp"
+#include "asio/detail/limits.hpp"
+#include "asio/detail/op_queue.hpp"
+#include "asio/detail/timer_queue_base.hpp"
+#include "asio/detail/wait_op.hpp"
+#include "asio/error.hpp"
 
-#include <boost/asio/detail/push_options.hpp>
+#include "asio/detail/push_options.hpp"
 
-namespace boost {
 namespace asio {
 namespace detail {
 
@@ -47,7 +46,11 @@ public:
   class per_timer_data
   {
   public:
-    per_timer_data() : next_(0), prev_(0) {}
+    per_timer_data() :
+      heap_index_((std::numeric_limits<std::size_t>::max)()),
+      next_(0), prev_(0)
+    {
+    }
 
   private:
     friend class timer_queue;
@@ -178,7 +181,7 @@ public:
       while (wait_op* op = (num_cancelled != max_cancelled)
           ? timer.op_queue_.front() : 0)
       {
-        op->ec_ = boost::asio::error::operation_aborted;
+        op->ec_ = asio::error::operation_aborted;
         timer.op_queue_.pop();
         ops.push(op);
         ++num_cancelled;
@@ -187,6 +190,29 @@ public:
         remove_timer(timer);
     }
     return num_cancelled;
+  }
+
+  // Move operations from one timer to another, empty timer.
+  void move_timer(per_timer_data& target, per_timer_data& source)
+  {
+    target.op_queue_.push(source.op_queue_);
+
+    target.heap_index_ = source.heap_index_;
+    source.heap_index_ = (std::numeric_limits<std::size_t>::max)();
+
+    if (target.heap_index_ < heap_.size())
+      heap_[target.heap_index_].timer_ = &target;
+
+    if (timers_ == &source)
+      timers_ = &target;
+    if (source.prev_)
+      source.prev_->next_ = &target;
+    if (source.next_)
+      source.next_->prev_= &target;
+    target.next_ = source.next_;
+    target.prev_ = source.prev_;
+    source.next_ = 0;
+    source.prev_ = 0;
   }
 
 private:
@@ -326,8 +352,7 @@ private:
 
 } // namespace detail
 } // namespace asio
-} // namespace boost
 
-#include <boost/asio/detail/pop_options.hpp>
+#include "asio/detail/pop_options.hpp"
 
-#endif // BOOST_ASIO_DETAIL_TIMER_QUEUE_HPP
+#endif // ASIO_DETAIL_TIMER_QUEUE_HPP

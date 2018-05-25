@@ -2,39 +2,38 @@
 // detail/impl/win_mutex.ipp
 // ~~~~~~~~~~~~~~~~~~~~~~~~~
 //
-// Copyright (c) 2003-2016 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+// Copyright (c) 2003-2018 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
-#ifndef BOOST_ASIO_DETAIL_IMPL_WIN_MUTEX_IPP
-#define BOOST_ASIO_DETAIL_IMPL_WIN_MUTEX_IPP
+#ifndef ASIO_DETAIL_IMPL_WIN_MUTEX_IPP
+#define ASIO_DETAIL_IMPL_WIN_MUTEX_IPP
 
 #if defined(_MSC_VER) && (_MSC_VER >= 1200)
 # pragma once
 #endif // defined(_MSC_VER) && (_MSC_VER >= 1200)
 
-#include <boost/asio/detail/config.hpp>
+#include "asio/detail/config.hpp"
 
-#if defined(BOOST_ASIO_WINDOWS)
+#if defined(ASIO_WINDOWS)
 
-#include <boost/asio/detail/throw_error.hpp>
-#include <boost/asio/detail/win_mutex.hpp>
-#include <boost/asio/error.hpp>
+#include "asio/detail/throw_error.hpp"
+#include "asio/detail/win_mutex.hpp"
+#include "asio/error.hpp"
 
-#include <boost/asio/detail/push_options.hpp>
+#include "asio/detail/push_options.hpp"
 
-namespace boost {
 namespace asio {
 namespace detail {
 
 win_mutex::win_mutex()
 {
   int error = do_init();
-  boost::system::error_code ec(error,
-      boost::asio::error::get_system_category());
-  boost::asio::detail::throw_error(ec, "mutex");
+  asio::error_code ec(error,
+      asio::error::get_system_category());
+  asio::detail::throw_error(ec, "mutex");
 }
 
 int win_mutex::do_init()
@@ -44,8 +43,9 @@ int win_mutex::do_init()
   // we'll just call the Windows API and hope.
 # if defined(UNDER_CE)
   ::InitializeCriticalSection(&crit_section_);
-# elif defined(BOOST_ASIO_WINDOWS_APP)
-  ::InitializeCriticalSectionEx(&crit_section_, 0x80000000, 0);
+# elif defined(ASIO_WINDOWS_APP)
+  if (!::InitializeCriticalSectionEx(&crit_section_, 0, 0))
+    return ::GetLastError();
 # else
   if (!::InitializeCriticalSectionAndSpinCount(&crit_section_, 0x80000000))
     return ::GetLastError();
@@ -56,9 +56,9 @@ int win_mutex::do_init()
   {
 # if defined(UNDER_CE)
     ::InitializeCriticalSection(&crit_section_);
-# elif defined(BOOST_ASIO_WINDOWS_APP)
+# elif defined(ASIO_WINDOWS_APP)
     if (!::InitializeCriticalSectionEx(&crit_section_, 0, 0))
-	  return ::GetLastError();
+      return ::GetLastError();
 # else
     if (!::InitializeCriticalSectionAndSpinCount(&crit_section_, 0x80000000))
       return ::GetLastError();
@@ -76,10 +76,9 @@ int win_mutex::do_init()
 
 } // namespace detail
 } // namespace asio
-} // namespace boost
 
-#include <boost/asio/detail/pop_options.hpp>
+#include "asio/detail/pop_options.hpp"
 
-#endif // defined(BOOST_ASIO_WINDOWS)
+#endif // defined(ASIO_WINDOWS)
 
-#endif // BOOST_ASIO_DETAIL_IMPL_WIN_MUTEX_IPP
+#endif // ASIO_DETAIL_IMPL_WIN_MUTEX_IPP

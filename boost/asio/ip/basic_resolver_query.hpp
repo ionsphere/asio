@@ -2,33 +2,32 @@
 // ip/basic_resolver_query.hpp
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //
-// Copyright (c) 2003-2016 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+// Copyright (c) 2003-2018 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
-#ifndef BOOST_ASIO_IP_BASIC_RESOLVER_QUERY_HPP
-#define BOOST_ASIO_IP_BASIC_RESOLVER_QUERY_HPP
+#ifndef ASIO_IP_BASIC_RESOLVER_QUERY_HPP
+#define ASIO_IP_BASIC_RESOLVER_QUERY_HPP
 
 #if defined(_MSC_VER) && (_MSC_VER >= 1200)
 # pragma once
 #endif // defined(_MSC_VER) && (_MSC_VER >= 1200)
 
-#include <boost/asio/detail/config.hpp>
+#include "asio/detail/config.hpp"
 #include <string>
-#include <boost/asio/detail/socket_ops.hpp>
-#include <boost/asio/ip/resolver_query_base.hpp>
+#include "asio/detail/socket_ops.hpp"
+#include "asio/ip/resolver_query_base.hpp"
 
-#include <boost/asio/detail/push_options.hpp>
+#include "asio/detail/push_options.hpp"
 
-namespace boost {
 namespace asio {
 namespace ip {
 
 /// An query to be passed to a resolver.
 /**
- * The boost::asio::ip::basic_resolver_query class template describes a query
+ * The asio::ip::basic_resolver_query class template describes a query
  * that can be passed to a resolver.
  *
  * @par Thread Safety
@@ -153,7 +152,7 @@ public:
   {
     typename InternetProtocol::endpoint endpoint;
     hints_.ai_flags = static_cast<int>(resolve_flags);
-    hints_.ai_family = BOOST_ASIO_OS_DEF(AF_UNSPEC);
+    hints_.ai_family = ASIO_OS_DEF(AF_UNSPEC);
     hints_.ai_socktype = endpoint.protocol().type();
     hints_.ai_protocol = endpoint.protocol().protocol();
     hints_.ai_addrlen = 0;
@@ -214,7 +213,7 @@ public:
   }
 
   /// Get the hints associated with the query.
-  const boost::asio::detail::addrinfo_type& hints() const
+  const asio::detail::addrinfo_type& hints() const
   {
     return hints_;
   }
@@ -232,15 +231,14 @@ public:
   }
 
 private:
-  boost::asio::detail::addrinfo_type hints_;
+  asio::detail::addrinfo_type hints_;
   std::string host_name_;
   std::string service_name_;
 };
 
 } // namespace ip
 } // namespace asio
-} // namespace boost
 
-#include <boost/asio/detail/pop_options.hpp>
+#include "asio/detail/pop_options.hpp"
 
-#endif // BOOST_ASIO_IP_BASIC_RESOLVER_QUERY_HPP
+#endif // ASIO_IP_BASIC_RESOLVER_QUERY_HPP

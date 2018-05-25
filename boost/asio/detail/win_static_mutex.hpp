@@ -2,42 +2,41 @@
 // detail/win_static_mutex.hpp
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //
-// Copyright (c) 2003-2016 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+// Copyright (c) 2003-2018 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
-#ifndef BOOST_ASIO_DETAIL_WIN_STATIC_MUTEX_HPP
-#define BOOST_ASIO_DETAIL_WIN_STATIC_MUTEX_HPP
+#ifndef ASIO_DETAIL_WIN_STATIC_MUTEX_HPP
+#define ASIO_DETAIL_WIN_STATIC_MUTEX_HPP
 
 #if defined(_MSC_VER) && (_MSC_VER >= 1200)
 # pragma once
 #endif // defined(_MSC_VER) && (_MSC_VER >= 1200)
 
-#include <boost/asio/detail/config.hpp>
+#include "asio/detail/config.hpp"
 
-#if defined(BOOST_ASIO_WINDOWS)
+#if defined(ASIO_WINDOWS)
 
-#include <boost/asio/detail/scoped_lock.hpp>
+#include "asio/detail/scoped_lock.hpp"
 
-#include <boost/asio/detail/push_options.hpp>
+#include "asio/detail/push_options.hpp"
 
-namespace boost {
 namespace asio {
 namespace detail {
 
 struct win_static_mutex
 {
-  typedef boost::asio::detail::scoped_lock<win_static_mutex> scoped_lock;
+  typedef asio::detail::scoped_lock<win_static_mutex> scoped_lock;
 
   // Initialise the mutex.
-  BOOST_ASIO_DECL void init();
+  ASIO_DECL void init();
 
   // Initialisation must be performed in a separate function to the "public"
   // init() function since the compiler does not support the use of structured
   // exceptions and C++ exceptions in the same function.
-  BOOST_ASIO_DECL int do_init();
+  ASIO_DECL int do_init();
 
   // Lock the mutex.
   void lock()
@@ -56,21 +55,20 @@ struct win_static_mutex
 };
 
 #if defined(UNDER_CE)
-# define BOOST_ASIO_WIN_STATIC_MUTEX_INIT { false, { 0, 0, 0, 0, 0 } }
+# define ASIO_WIN_STATIC_MUTEX_INIT { false, { 0, 0, 0, 0, 0 } }
 #else // defined(UNDER_CE)
-# define BOOST_ASIO_WIN_STATIC_MUTEX_INIT { false, { 0, 0, 0, 0, 0, 0 } }
+# define ASIO_WIN_STATIC_MUTEX_INIT { false, { 0, 0, 0, 0, 0, 0 } }
 #endif // defined(UNDER_CE)
 
 } // namespace detail
 } // namespace asio
-} // namespace boost
 
-#include <boost/asio/detail/pop_options.hpp>
+#include "asio/detail/pop_options.hpp"
 
-#if defined(BOOST_ASIO_HEADER_ONLY)
-# include <boost/asio/detail/impl/win_static_mutex.ipp>
-#endif // defined(BOOST_ASIO_HEADER_ONLY)
+#if defined(ASIO_HEADER_ONLY)
+# include "asio/detail/impl/win_static_mutex.ipp"
+#endif // defined(ASIO_HEADER_ONLY)
 
-#endif // defined(BOOST_ASIO_WINDOWS)
+#endif // defined(ASIO_WINDOWS)
 
-#endif // BOOST_ASIO_DETAIL_WIN_STATIC_MUTEX_HPP
+#endif // ASIO_DETAIL_WIN_STATIC_MUTEX_HPP

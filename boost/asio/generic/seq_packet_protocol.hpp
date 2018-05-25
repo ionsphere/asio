@@ -2,36 +2,35 @@
 // generic/seq_packet_protocol.hpp
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //
-// Copyright (c) 2003-2016 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+// Copyright (c) 2003-2018 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
-#ifndef BOOST_ASIO_GENERIC_SEQ_PACKET_PROTOCOL_HPP
-#define BOOST_ASIO_GENERIC_SEQ_PACKET_PROTOCOL_HPP
+#ifndef ASIO_GENERIC_SEQ_PACKET_PROTOCOL_HPP
+#define ASIO_GENERIC_SEQ_PACKET_PROTOCOL_HPP
 
 #if defined(_MSC_VER) && (_MSC_VER >= 1200)
 # pragma once
 #endif // defined(_MSC_VER) && (_MSC_VER >= 1200)
 
-#include <boost/asio/detail/config.hpp>
+#include "asio/detail/config.hpp"
 
 #include <typeinfo>
-#include <boost/asio/basic_seq_packet_socket.hpp>
-#include <boost/asio/detail/socket_types.hpp>
-#include <boost/asio/detail/throw_exception.hpp>
-#include <boost/asio/generic/basic_endpoint.hpp>
+#include "asio/basic_seq_packet_socket.hpp"
+#include "asio/detail/socket_types.hpp"
+#include "asio/detail/throw_exception.hpp"
+#include "asio/generic/basic_endpoint.hpp"
 
-#include <boost/asio/detail/push_options.hpp>
+#include "asio/detail/push_options.hpp"
 
-namespace boost {
 namespace asio {
 namespace generic {
 
 /// Encapsulates the flags needed for a generic sequenced packet socket.
 /**
- * The boost::asio::generic::seq_packet_protocol class contains flags necessary
+ * The asio::generic::seq_packet_protocol class contains flags necessary
  * for seq_packet-oriented sockets of any address family and protocol.
  *
  * @par Examples
@@ -68,14 +67,14 @@ public:
     if (source_protocol.type() != type())
     {
       std::bad_cast ex;
-      boost::asio::detail::throw_exception(ex);
+      asio::detail::throw_exception(ex);
     }
   }
 
   /// Obtain an identifier for the type of the protocol.
   int type() const
   {
-    return BOOST_ASIO_OS_DEF(SOCK_SEQPACKET);
+    return ASIO_OS_DEF(SOCK_SEQPACKET);
   }
 
   /// Obtain an identifier for the protocol.
@@ -117,8 +116,7 @@ private:
 
 } // namespace generic
 } // namespace asio
-} // namespace boost
 
-#include <boost/asio/detail/pop_options.hpp>
+#include "asio/detail/pop_options.hpp"
 
-#endif // BOOST_ASIO_GENERIC_SEQ_PACKET_PROTOCOL_HPP
+#endif // ASIO_GENERIC_SEQ_PACKET_PROTOCOL_HPP

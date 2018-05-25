@@ -2,31 +2,30 @@
 // detail/impl/winsock_init.ipp
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //
-// Copyright (c) 2003-2016 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+// Copyright (c) 2003-2018 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
-#ifndef BOOST_ASIO_DETAIL_IMPL_WINSOCK_INIT_IPP
-#define BOOST_ASIO_DETAIL_IMPL_WINSOCK_INIT_IPP
+#ifndef ASIO_DETAIL_IMPL_WINSOCK_INIT_IPP
+#define ASIO_DETAIL_IMPL_WINSOCK_INIT_IPP
 
 #if defined(_MSC_VER) && (_MSC_VER >= 1200)
 # pragma once
 #endif // defined(_MSC_VER) && (_MSC_VER >= 1200)
 
-#include <boost/asio/detail/config.hpp>
+#include "asio/detail/config.hpp"
 
-#if defined(BOOST_ASIO_WINDOWS) || defined(__CYGWIN__)
+#if defined(ASIO_WINDOWS) || defined(__CYGWIN__)
 
-#include <boost/asio/detail/socket_types.hpp>
-#include <boost/asio/detail/winsock_init.hpp>
-#include <boost/asio/detail/throw_error.hpp>
-#include <boost/asio/error.hpp>
+#include "asio/detail/socket_types.hpp"
+#include "asio/detail/winsock_init.hpp"
+#include "asio/detail/throw_error.hpp"
+#include "asio/error.hpp"
 
-#include <boost/asio/detail/push_options.hpp>
+#include "asio/detail/push_options.hpp"
 
-namespace boost {
 namespace asio {
 namespace detail {
 
@@ -67,18 +66,17 @@ void winsock_init_base::throw_on_error(data& d)
   long result = ::InterlockedExchangeAdd(&d.result_, 0);
   if (result != 0)
   {
-    boost::system::error_code ec(result,
-        boost::asio::error::get_system_category());
-    boost::asio::detail::throw_error(ec, "winsock");
+    asio::error_code ec(result,
+        asio::error::get_system_category());
+    asio::detail::throw_error(ec, "winsock");
   }
 }
 
 } // namespace detail
 } // namespace asio
-} // namespace boost
 
-#include <boost/asio/detail/pop_options.hpp>
+#include "asio/detail/pop_options.hpp"
 
-#endif // defined(BOOST_ASIO_WINDOWS) || defined(__CYGWIN__)
+#endif // defined(ASIO_WINDOWS) || defined(__CYGWIN__)
 
-#endif // BOOST_ASIO_DETAIL_IMPL_WINSOCK_INIT_IPP
+#endif // ASIO_DETAIL_IMPL_WINSOCK_INIT_IPP

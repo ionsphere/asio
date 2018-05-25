@@ -2,25 +2,24 @@
 // detail/base_from_completion_cond.hpp
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //
-// Copyright (c) 2003-2016 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+// Copyright (c) 2003-2018 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
-#ifndef BOOST_ASIO_DETAIL_BASE_FROM_COMPLETION_COND_HPP
-#define BOOST_ASIO_DETAIL_BASE_FROM_COMPLETION_COND_HPP
+#ifndef ASIO_DETAIL_BASE_FROM_COMPLETION_COND_HPP
+#define ASIO_DETAIL_BASE_FROM_COMPLETION_COND_HPP
 
 #if defined(_MSC_VER) && (_MSC_VER >= 1200)
 # pragma once
 #endif // defined(_MSC_VER) && (_MSC_VER >= 1200)
 
-#include <boost/asio/detail/config.hpp>
-#include <boost/asio/completion_condition.hpp>
+#include "asio/detail/config.hpp"
+#include "asio/completion_condition.hpp"
 
-#include <boost/asio/detail/push_options.hpp>
+#include "asio/detail/push_options.hpp"
 
-namespace boost {
 namespace asio {
 namespace detail {
 
@@ -34,7 +33,7 @@ protected:
   }
 
   std::size_t check_for_completion(
-      const boost::system::error_code& ec,
+      const asio::error_code& ec,
       std::size_t total_transferred)
   {
     return detail::adapt_completion_condition_result(
@@ -54,7 +53,7 @@ protected:
   }
 
   static std::size_t check_for_completion(
-      const boost::system::error_code& ec,
+      const asio::error_code& ec,
       std::size_t total_transferred)
   {
     return transfer_all_t()(ec, total_transferred);
@@ -63,8 +62,7 @@ protected:
 
 } // namespace detail
 } // namespace asio
-} // namespace boost
 
-#include <boost/asio/detail/pop_options.hpp>
+#include "asio/detail/pop_options.hpp"
 
-#endif // BOOST_ASIO_DETAIL_BASE_FROM_COMPLETION_COND_HPP
+#endif // ASIO_DETAIL_BASE_FROM_COMPLETION_COND_HPP

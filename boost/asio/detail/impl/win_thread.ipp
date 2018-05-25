@@ -2,33 +2,32 @@
 // detail/impl/win_thread.ipp
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~
 //
-// Copyright (c) 2003-2016 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+// Copyright (c) 2003-2018 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
-#ifndef BOOST_ASIO_DETAIL_IMPL_WIN_THREAD_IPP
-#define BOOST_ASIO_DETAIL_IMPL_WIN_THREAD_IPP
+#ifndef ASIO_DETAIL_IMPL_WIN_THREAD_IPP
+#define ASIO_DETAIL_IMPL_WIN_THREAD_IPP
 
 #if defined(_MSC_VER) && (_MSC_VER >= 1200)
 # pragma once
 #endif // defined(_MSC_VER) && (_MSC_VER >= 1200)
 
-#include <boost/asio/detail/config.hpp>
+#include "asio/detail/config.hpp"
 
-#if defined(BOOST_ASIO_WINDOWS) \
-  && !defined(BOOST_ASIO_WINDOWS_APP) \
+#if defined(ASIO_WINDOWS) \
+  && !defined(ASIO_WINDOWS_APP) \
   && !defined(UNDER_CE)
 
 #include <process.h>
-#include <boost/asio/detail/throw_error.hpp>
-#include <boost/asio/detail/win_thread.hpp>
-#include <boost/asio/error.hpp>
+#include "asio/detail/throw_error.hpp"
+#include "asio/detail/win_thread.hpp"
+#include "asio/error.hpp"
 
-#include <boost/asio/detail/push_options.hpp>
+#include "asio/detail/push_options.hpp"
 
-namespace boost {
 namespace asio {
 namespace detail {
 
@@ -56,6 +55,13 @@ void win_thread::join()
   }
 }
 
+std::size_t win_thread::hardware_concurrency()
+{
+  SYSTEM_INFO system_info;
+  ::GetSystemInfo(&system_info);
+  return system_info.dwNumberOfProcessors;
+}
+
 void win_thread::start_thread(func_base* arg, unsigned int stack_size)
 {
   ::HANDLE entry_event = 0;
@@ -64,9 +70,9 @@ void win_thread::start_thread(func_base* arg, unsigned int stack_size)
   {
     DWORD last_error = ::GetLastError();
     delete arg;
-    boost::system::error_code ec(last_error,
-        boost::asio::error::get_system_category());
-    boost::asio::detail::throw_error(ec, "thread.entry_event");
+    asio::error_code ec(last_error,
+        asio::error::get_system_category());
+    asio::detail::throw_error(ec, "thread.entry_event");
   }
 
   arg->exit_event_ = exit_event_ = ::CreateEventW(0, true, false, 0);
@@ -74,9 +80,9 @@ void win_thread::start_thread(func_base* arg, unsigned int stack_size)
   {
     DWORD last_error = ::GetLastError();
     delete arg;
-    boost::system::error_code ec(last_error,
-        boost::asio::error::get_system_category());
-    boost::asio::detail::throw_error(ec, "thread.exit_event");
+    asio::error_code ec(last_error,
+        asio::error::get_system_category());
+    asio::detail::throw_error(ec, "thread.exit_event");
   }
 
   unsigned int thread_id = 0;
@@ -90,9 +96,9 @@ void win_thread::start_thread(func_base* arg, unsigned int stack_size)
       ::CloseHandle(entry_event);
     if (exit_event_)
       ::CloseHandle(exit_event_);
-    boost::system::error_code ec(last_error,
-        boost::asio::error::get_system_category());
-    boost::asio::detail::throw_error(ec, "thread");
+    asio::error_code ec(last_error,
+        asio::error::get_system_category());
+    asio::detail::throw_error(ec, "thread");
   }
 
   if (entry_event)
@@ -134,12 +140,11 @@ void __stdcall apc_function(ULONG_PTR) {}
 
 } // namespace detail
 } // namespace asio
-} // namespace boost
 
-#include <boost/asio/detail/pop_options.hpp>
+#include "asio/detail/pop_options.hpp"
 
-#endif // defined(BOOST_ASIO_WINDOWS)
-       // && !defined(BOOST_ASIO_WINDOWS_APP)
+#endif // defined(ASIO_WINDOWS)
+       // && !defined(ASIO_WINDOWS_APP)
        // && !defined(UNDER_CE)
 
-#endif // BOOST_ASIO_DETAIL_IMPL_WIN_THREAD_IPP
+#endif // ASIO_DETAIL_IMPL_WIN_THREAD_IPP

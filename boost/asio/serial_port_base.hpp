@@ -2,43 +2,42 @@
 // serial_port_base.hpp
 // ~~~~~~~~~~~~~~~~~~~~
 //
-// Copyright (c) 2003-2016 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+// Copyright (c) 2003-2018 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 // Copyright (c) 2008 Rep Invariant Systems, Inc. (info@repinvariant.com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
-#ifndef BOOST_ASIO_SERIAL_PORT_BASE_HPP
-#define BOOST_ASIO_SERIAL_PORT_BASE_HPP
+#ifndef ASIO_SERIAL_PORT_BASE_HPP
+#define ASIO_SERIAL_PORT_BASE_HPP
 
 #if defined(_MSC_VER) && (_MSC_VER >= 1200)
 # pragma once
 #endif // defined(_MSC_VER) && (_MSC_VER >= 1200)
 
-#include <boost/asio/detail/config.hpp>
+#include "asio/detail/config.hpp"
 
-#if defined(BOOST_ASIO_HAS_SERIAL_PORT) \
+#if defined(ASIO_HAS_SERIAL_PORT) \
   || defined(GENERATING_DOCUMENTATION)
 
-#if !defined(BOOST_ASIO_WINDOWS) && !defined(__CYGWIN__)
+#if !defined(ASIO_WINDOWS) && !defined(__CYGWIN__)
 # include <termios.h>
-#endif // !defined(BOOST_ASIO_WINDOWS) && !defined(__CYGWIN__)
+#endif // !defined(ASIO_WINDOWS) && !defined(__CYGWIN__)
 
-#include <boost/asio/detail/socket_types.hpp>
-#include <boost/system/error_code.hpp>
+#include "asio/detail/socket_types.hpp"
+#include "asio/error_code.hpp"
 
 #if defined(GENERATING_DOCUMENTATION)
-# define BOOST_ASIO_OPTION_STORAGE implementation_defined
-#elif defined(BOOST_ASIO_WINDOWS) || defined(__CYGWIN__)
-# define BOOST_ASIO_OPTION_STORAGE DCB
+# define ASIO_OPTION_STORAGE implementation_defined
+#elif defined(ASIO_WINDOWS) || defined(__CYGWIN__)
+# define ASIO_OPTION_STORAGE DCB
 #else
-# define BOOST_ASIO_OPTION_STORAGE termios
+# define ASIO_OPTION_STORAGE termios
 #endif
 
-#include <boost/asio/detail/push_options.hpp>
+#include "asio/detail/push_options.hpp"
 
-namespace boost {
 namespace asio {
 
 /// The serial_port_base class is used as a base for the basic_serial_port class
@@ -55,12 +54,12 @@ public:
   public:
     explicit baud_rate(unsigned int rate = 0);
     unsigned int value() const;
-    BOOST_ASIO_DECL boost::system::error_code store(
-        BOOST_ASIO_OPTION_STORAGE& storage,
-        boost::system::error_code& ec) const;
-    BOOST_ASIO_DECL boost::system::error_code load(
-        const BOOST_ASIO_OPTION_STORAGE& storage,
-        boost::system::error_code& ec);
+    ASIO_DECL ASIO_SYNC_OP_VOID store(
+        ASIO_OPTION_STORAGE& storage,
+        asio::error_code& ec) const;
+    ASIO_DECL ASIO_SYNC_OP_VOID load(
+        const ASIO_OPTION_STORAGE& storage,
+        asio::error_code& ec);
   private:
     unsigned int value_;
   };
@@ -73,14 +72,14 @@ public:
   {
   public:
     enum type { none, software, hardware };
-    BOOST_ASIO_DECL explicit flow_control(type t = none);
+    ASIO_DECL explicit flow_control(type t = none);
     type value() const;
-    BOOST_ASIO_DECL boost::system::error_code store(
-        BOOST_ASIO_OPTION_STORAGE& storage,
-        boost::system::error_code& ec) const;
-    BOOST_ASIO_DECL boost::system::error_code load(
-        const BOOST_ASIO_OPTION_STORAGE& storage,
-        boost::system::error_code& ec);
+    ASIO_DECL ASIO_SYNC_OP_VOID store(
+        ASIO_OPTION_STORAGE& storage,
+        asio::error_code& ec) const;
+    ASIO_DECL ASIO_SYNC_OP_VOID load(
+        const ASIO_OPTION_STORAGE& storage,
+        asio::error_code& ec);
   private:
     type value_;
   };
@@ -93,14 +92,14 @@ public:
   {
   public:
     enum type { none, odd, even };
-    BOOST_ASIO_DECL explicit parity(type t = none);
+    ASIO_DECL explicit parity(type t = none);
     type value() const;
-    BOOST_ASIO_DECL boost::system::error_code store(
-        BOOST_ASIO_OPTION_STORAGE& storage,
-        boost::system::error_code& ec) const;
-    BOOST_ASIO_DECL boost::system::error_code load(
-        const BOOST_ASIO_OPTION_STORAGE& storage,
-        boost::system::error_code& ec);
+    ASIO_DECL ASIO_SYNC_OP_VOID store(
+        ASIO_OPTION_STORAGE& storage,
+        asio::error_code& ec) const;
+    ASIO_DECL ASIO_SYNC_OP_VOID load(
+        const ASIO_OPTION_STORAGE& storage,
+        asio::error_code& ec);
   private:
     type value_;
   };
@@ -113,14 +112,14 @@ public:
   {
   public:
     enum type { one, onepointfive, two };
-    BOOST_ASIO_DECL explicit stop_bits(type t = one);
+    ASIO_DECL explicit stop_bits(type t = one);
     type value() const;
-    BOOST_ASIO_DECL boost::system::error_code store(
-        BOOST_ASIO_OPTION_STORAGE& storage,
-        boost::system::error_code& ec) const;
-    BOOST_ASIO_DECL boost::system::error_code load(
-        const BOOST_ASIO_OPTION_STORAGE& storage,
-        boost::system::error_code& ec);
+    ASIO_DECL ASIO_SYNC_OP_VOID store(
+        ASIO_OPTION_STORAGE& storage,
+        asio::error_code& ec) const;
+    ASIO_DECL ASIO_SYNC_OP_VOID load(
+        const ASIO_OPTION_STORAGE& storage,
+        asio::error_code& ec);
   private:
     type value_;
   };
@@ -132,14 +131,14 @@ public:
   class character_size
   {
   public:
-    BOOST_ASIO_DECL explicit character_size(unsigned int t = 8);
+    ASIO_DECL explicit character_size(unsigned int t = 8);
     unsigned int value() const;
-    BOOST_ASIO_DECL boost::system::error_code store(
-        BOOST_ASIO_OPTION_STORAGE& storage,
-        boost::system::error_code& ec) const;
-    BOOST_ASIO_DECL boost::system::error_code load(
-        const BOOST_ASIO_OPTION_STORAGE& storage,
-        boost::system::error_code& ec);
+    ASIO_DECL ASIO_SYNC_OP_VOID store(
+        ASIO_OPTION_STORAGE& storage,
+        asio::error_code& ec) const;
+    ASIO_DECL ASIO_SYNC_OP_VOID load(
+        const ASIO_OPTION_STORAGE& storage,
+        asio::error_code& ec);
   private:
     unsigned int value_;
   };
@@ -152,18 +151,17 @@ protected:
 };
 
 } // namespace asio
-} // namespace boost
 
-#include <boost/asio/detail/pop_options.hpp>
+#include "asio/detail/pop_options.hpp"
 
-#undef BOOST_ASIO_OPTION_STORAGE
+#undef ASIO_OPTION_STORAGE
 
-#include <boost/asio/impl/serial_port_base.hpp>
-#if defined(BOOST_ASIO_HEADER_ONLY)
-# include <boost/asio/impl/serial_port_base.ipp>
-#endif // defined(BOOST_ASIO_HEADER_ONLY)
+#include "asio/impl/serial_port_base.hpp"
+#if defined(ASIO_HEADER_ONLY)
+# include "asio/impl/serial_port_base.ipp"
+#endif // defined(ASIO_HEADER_ONLY)
 
-#endif // defined(BOOST_ASIO_HAS_SERIAL_PORT)
+#endif // defined(ASIO_HAS_SERIAL_PORT)
        //   || defined(GENERATING_DOCUMENTATION)
 
-#endif // BOOST_ASIO_SERIAL_PORT_BASE_HPP
+#endif // ASIO_SERIAL_PORT_BASE_HPP
