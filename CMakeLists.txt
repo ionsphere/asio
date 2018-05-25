@@ -488,7 +488,6 @@ set(SOURCE_FILES
       boost/asio/ip/unicast.hpp
       boost/asio/ip/basic_resolver_iterator.hpp
       boost/asio/ip/basic_resolver.hpp
-      boost/asio/ip/basic_resolver_base.hpp
       boost/asio/ip/basic_resolver_results.hpp
       boost/asio/ip/host_name.hpp
       boost/asio/ip/network_v4.hpp
@@ -504,6 +503,7 @@ set(SOURCE_FILES
       boost/asio/ip/address_v4.hpp
       boost/asio/ip/address_v4_iterator.hpp
       boost/asio/ip/address_v4_range.hpp
+      boost/asio/ip/resolver_base.hpp
       boost/asio/ip/resolver_query_base.hpp
       boost/asio/ip/basic_resolver_entry.hpp
       boost/asio/ip/udp.hpp
